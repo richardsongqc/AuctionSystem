@@ -43,6 +43,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(solutiondir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -101,6 +102,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\AuctionServer\Buffer.h" />
     <ClInclude Include="AuctionClient.h" />
     <ClInclude Include="AuctionClientDoc.h" />
     <ClInclude Include="AuctionClientView.h" />
@@ -112,6 +114,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\AuctionServer\Buffer.cpp" />
     <ClCompile Include="AuctionClient.cpp" />
     <ClCompile Include="AuctionClientDoc.cpp" />
     <ClCompile Include="AuctionClientView.cpp" />

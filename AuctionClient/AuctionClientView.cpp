@@ -63,6 +63,9 @@ void CAuctionClientView::OnInitialUpdate()
 	GetParentFrame()->RecalcLayout();
 	ResizeParentToFit();
 
+	CAuctionClientDoc * pDoc = GetDocument();
+	pDoc->ConnectSocket(L"127.0.0.1", 10000);
+
 	if (m_pLogonDlg == NULL)
 	{
 		m_pLogonDlg = new CLogonDlg(this);

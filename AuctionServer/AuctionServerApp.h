@@ -29,31 +29,8 @@ public:
 
 	bool ValidateUser(CString strUserID, CString strPassword, CString& strUserName);
 
-	class CProcessRequestQueueThread : public CWinThread
-	{
-	public:
-		CProcessRequestQueueThread(void* pParent);
-		~CProcessRequestQueueThread();
-
-		virtual int Run();
-
-	protected:
-		void*	m_pParent;
-	};
-
-	class CProcessResponseQueueThread : public CWinThread
-	{
-	public:
-		CProcessResponseQueueThread(void* hParent);
-		~CProcessResponseQueueThread();
-
-		virtual int Run();
-
-	protected:
-		void*	m_pParent;
-	};
-
-	
+	static UINT ProcessRequestQueueThread(LPVOID pParam);
+	static UINT ProcessResponseQueueThread(LPVOID pParam);
 protected:
 	DECLARE_MESSAGE_MAP()
 
@@ -63,11 +40,9 @@ protected:
 
 	ClassDBConnection m_dbConn;
 
-	CProcessRequestQueueThread *	m_pThreadProducer;
-	CProcessResponseQueueThread *	m_pThreadConsumer;
-//	CSemaphore*			m_pSemaphoreEmpty;
-//	CSemaphore*			m_pSemaphoreFull;
-	CMutex *						m_pMutex;
+	CWinThread	*	m_pThreadProcessRequestQueue;
+	CWinThread	*	m_pThreadProcessResponseQueue;
+	CMutex *		m_pMutex;
 
 };
 

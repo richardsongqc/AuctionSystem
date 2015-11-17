@@ -8,7 +8,7 @@
 #ifndef SHARED_HANDLERS
 #include "AuctionClient.h"
 #endif
-
+#include "MainFrm.h"
 #include "AuctionClientDoc.h"
 
 #include <propkey.h>
@@ -16,6 +16,18 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+
+CAuctionClientDoc * GetCurrentDoc()
+{
+	CMainFrame * pFrame = (CMainFrame *)(AfxGetApp()->m_pMainWnd);
+	if (pFrame == NULL)
+	{
+		return NULL;
+	}
+
+	CAuctionClientDoc *pDoc = (CAuctionClientDoc*)pFrame->GetDocument();
+	return pDoc;
+}
 
 // CAuctionClientDoc
 
@@ -135,7 +147,27 @@ void CAuctionClientDoc::Dump(CDumpContext& dc) const
 
 
 // CAuctionClientDoc commands
-BOOL CAuctionClientDoc::ConnectSocket(CString strHandle, CString strAddress, UINT nPort)
+CClientSocket* CAuctionClientDoc::GetSocket()
+{
+	return m_pSocket;
+}
+
+int CAuctionClientDoc::SendRequest(CBuffer inBuf, CBuffer outBuf)
+{
+	inBuf.Send(m_pSocket);
+	while (true)
+	{
+		int nLen = outBuf.Receive(m_pSocket);
+		if (nLen > 0)
+		{
+			break;
+		}
+	}
+
+	return 0;
+}
+
+BOOL CAuctionClientDoc::ConnectSocket(CString strAddress, UINT nPort)
 {
 	//m_strHandle = strHandle;
 

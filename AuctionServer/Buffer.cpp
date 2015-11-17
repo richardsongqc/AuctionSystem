@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Buffer.h"
-
+#include <protocol.h>
 
 CBuffer::CBuffer()
 {

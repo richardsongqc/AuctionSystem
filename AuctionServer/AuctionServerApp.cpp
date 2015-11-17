@@ -6,6 +6,7 @@
 #include "AuctionServer.h"
 #include "AuctionServerApp.h"
 #include "Buffer.h"
+#include <iostream>
 
 const int g_nPort = 10000;
 
@@ -54,26 +55,25 @@ BOOL CAuctionServerApp::InitInstance()
 		return FALSE;
 	}
 
+	m_pThreadProcessRequestQueue = AfxBeginThread(
+		ProcessRequestQueueThread,
+		this);
+
+	m_pThreadProcessResponseQueue = AfxBeginThread(
+		ProcessResponseQueueThread,
+		this);
+
 	m_pSocket = new CListeningSocket();
 	if (m_pSocket->Create(g_nPort + 1500)) // 700
 	{
+		std::cout << L"Start to listen the Port " << g_nPort + 1500 << std::endl;
+
 		if (m_pSocket->Listen())
 			return TRUE;
 	}
 
-	m_pThreadProducer = new CProcessRequestQueueThread(this);
-	m_pThreadConsumer = new CProcessResponseQueueThread(this);
+	long lErrNo = GetLastError();
 
-	m_pThreadProducer->CreateThread(CREATE_SUSPENDED);
-	VERIFY(m_pThreadProducer->SetThreadPriority(THREAD_PRIORITY_IDLE));
-	
-	m_pThreadConsumer->CreateThread(CREATE_SUSPENDED);
-	VERIFY(m_pThreadConsumer->SetThreadPriority(THREAD_PRIORITY_IDLE));
-	
-	TRACE("m_pThreadProducer In\n");
-	m_pThreadProducer->ResumeThread();
-	TRACE("m_pThreadConsumer Out\n");
-	m_pThreadConsumer->ResumeThread();
 
 
 	return TRUE;
@@ -82,6 +82,7 @@ BOOL CAuctionServerApp::InitInstance()
 int CAuctionServerApp::ExitInstance()
 {
 	// TODO:  perform any per-thread cleanup here
+
 	return CWinApp::ExitInstance();
 }
 
@@ -164,18 +165,7 @@ bool CAuctionServerApp::ValidateUser(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-
-CAuctionServerApp::CProcessRequestQueueThread::CProcessRequestQueueThread(void* hParent) : 
-	m_pParent(hParent)
-{
-
-}
-
-CAuctionServerApp::CProcessRequestQueueThread::~CProcessRequestQueueThread()
-{
-}
-
-int CAuctionServerApp::CProcessRequestQueueThread::Run()
+UINT CAuctionServerApp::ProcessRequestQueueThread(LPVOID pParam)
 {
 	while (true)
 	{
@@ -183,10 +173,9 @@ int CAuctionServerApp::CProcessRequestQueueThread::Run()
 		{
 			continue;
 		}
-
+	
 		CBuffer buffer = msgRequestQueue.Pop();
-
-		CAuctionServerApp * pParent = (CAuctionServerApp*)m_pParent;
+	
 		switch (buffer.GetCmd())
 		{
 		case CMD_REGISTER_CLIENT:
@@ -194,17 +183,17 @@ int CAuctionServerApp::CProcessRequestQueueThread::Run()
 				CInRegisterClient* inBuf = (CInRegisterClient*)&buffer;
 				CString strUserID = inBuf->GetUserID();
 				CString strPassword = inBuf->GetUserPassword();
-
+	
 				CString strUserName;
-				bool bValidUser = pParent->ValidateUser(strUserID, strPassword, strUserName);
-
+				bool bValidUser = theApp.ValidateUser(strUserID, strPassword, strUserName);
+	
 				COutRegisterClient outBuf;
 				outBuf.SetState(bValidUser);
 				if (bValidUser)
 				{
 					outBuf.SetUserName(strUserName);
 				}
-
+	
 				msgResponseQueue.Push(outBuf);
 			}
 			break; 
@@ -222,24 +211,14 @@ int CAuctionServerApp::CProcessRequestQueueThread::Run()
 			break;
 		}
 	}
-
-
-
-
-	return CWinThread::Run();
+	
+	
+	
+	
+	return 0;
 }
 
-CAuctionServerApp::CProcessResponseQueueThread::CProcessResponseQueueThread(void *pParent) : 
-	m_pParent(pParent)
-{
-
-}
-
-CAuctionServerApp::CProcessResponseQueueThread::~CProcessResponseQueueThread()
-{
-}
-
-int CAuctionServerApp::CProcessResponseQueueThread::Run()
+UINT CAuctionServerApp::ProcessResponseQueueThread(LPVOID pParam)
 {
 	while (true)
 	{
@@ -247,12 +226,10 @@ int CAuctionServerApp::CProcessResponseQueueThread::Run()
 		{
 			continue;
 		}
-
+	
 		CBuffer buffer = msgResponseQueue.Pop();
-		CAuctionServerApp * pParent = (CAuctionServerApp*)m_pParent;
-		buffer.Send(pParent->m_pSocket);
-
+		buffer.Send(theApp.m_pSocket);
 	}
-
-	return CWinThread::Run();
+	
+	return 0;
 }

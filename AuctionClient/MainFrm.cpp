@@ -93,3 +93,11 @@ void CMainFrame::Dump(CDumpContext& dc) const
 
 // CMainFrame message handlers
 
+CDocument* CMainFrame::GetDocument()
+{
+	//CFrameWnd * pFrame = (CFrameWnd *)(AfxGetApp()->m_pMainWnd);
+
+	CDocument *pDoc = GetActiveView()->GetDocument();
+
+	return pDoc;
+}

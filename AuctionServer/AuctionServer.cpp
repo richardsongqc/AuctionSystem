@@ -22,6 +22,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 	HMODULE hModule = ::GetModuleHandle(NULL);
 
+	if (!AfxSocketInit())
+	{
+		return FALSE;
+	}
+
 	if (hModule != NULL)
 	{
 		// initialize MFC and print and error on failure

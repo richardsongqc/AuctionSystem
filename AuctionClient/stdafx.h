@@ -35,7 +35,7 @@
 
 
 #include <afxsock.h>            // MFC socket extensions
-
+#include "..\\AuctionServer\\Buffer.h"
 
 
 

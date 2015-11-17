@@ -36,10 +36,17 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 
-	BOOL ConnectSocket(CString strHandle, CString strAddress, UINT nPort);
+	BOOL ConnectSocket(CString strAddress, UINT nPort);
 	void ProcessPendingRead();
 	void ReceiveMsg();
 
+	CString m_strUserID;
+	CString m_strUserPassword;
+	CString m_strUserName;
+
+	CClientSocket* GetSocket();
+
+	int SendRequest(CBuffer inBuf, CBuffer outBuf);
 protected:
 	CClientSocket* m_pSocket;
 
@@ -51,4 +58,7 @@ protected:
 	// Helper function that sets search content for a Search Handler
 	void SetSearchContent(const CString& value);
 #endif // SHARED_HANDLERS
+
 };
+
+extern CAuctionClientDoc * GetCurrentDoc();

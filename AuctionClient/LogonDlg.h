@@ -22,5 +22,6 @@ protected:
 public:
 	CEdit m_edtPassword;
 	CEdit m_edtUserID;
+//	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedOk();
 };
