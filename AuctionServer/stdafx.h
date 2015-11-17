@@ -35,3 +35,5 @@
 
 
 // TODO: reference additional headers your program requires here
+
+extern CString GetCurAppPath();

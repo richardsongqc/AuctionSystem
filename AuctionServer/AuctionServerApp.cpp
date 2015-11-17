@@ -39,7 +39,9 @@ BOOL CAuctionServerApp::InitInstance()
 	msgResponseQueue.Clean();
 
 	CString strConn;
-	CString strPath = _T("D:\\Richard\\Documents\\Visual Studio 2013\\Projects\\AuctionSystem\\Data\\Data.accdb");
+
+	CString strPath = GetCurAppPath();
+	strPath += _T("\\Data\\Data.accdb");
 	CString strPwd = _T("");
 	strConn.Format(
 		_T("DRIVER=MICROSOFT ACCESS DRIVER (*.mdb, *.accdb);DSN='';DBQ=%s;Uid=Admin;Pwd=%s;"), 

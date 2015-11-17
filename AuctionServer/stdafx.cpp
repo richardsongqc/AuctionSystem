@@ -6,3 +6,16 @@
 
 // TODO: reference any additional headers you need in STDAFX.H
 // and not in this file
+
+CString GetCurAppPath()
+{
+	HMODULE hModule = GetModuleHandleW(NULL);
+	TCHAR path[MAX_PATH] = { 0 };
+	GetModuleFileNameW(hModule, path, MAX_PATH);
+
+	CString str = path;
+
+	int nPos = str.ReverseFind('\\');
+
+	return str.Left(nPos);
+}
