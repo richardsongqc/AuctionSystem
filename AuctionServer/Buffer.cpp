@@ -78,7 +78,7 @@ CInRegisterClient& CInRegisterClient::operator = (const CInRegisterClient& rIn)
 
 CString CInRegisterClient::GetUserID()
 {
-	
+	USES_CONVERSION;
 	int nUserIDLen = m_szBuf[2];
 
 	BYTE szBuf[1024] = { 0 };
@@ -91,6 +91,8 @@ CString CInRegisterClient::GetUserID()
 
 void CInRegisterClient::SetUserID(CString strUserID)
 {	
+	USES_CONVERSION;
+
 	int nUserIDLen = strUserID.GetLength();
 	if (nUserIDLen == m_szBuf[2])
 	{
@@ -106,7 +108,7 @@ void CInRegisterClient::SetUserID(CString strUserID)
 	memcpy(szPassword, m_szBuf + nPasswordLenPos + 1, nPasswordLen);
 	
 	m_szBuf[1] = nPasswordLen + nUserIDLen + 2;
-	memcpy(m_szBuf + 3, strUserID.GetBuffer(nUserIDLen), nUserIDLen);
+	memcpy(m_szBuf + 3, T2A(strUserID.GetBuffer(nUserIDLen)), nUserIDLen);
 
 	m_szBuf[4 + nUserIDLen] = nPasswordLen;
 	memcpy( m_szBuf + nUserIDLen + 5, szPassword, nPasswordLen );
@@ -128,13 +130,17 @@ CString CInRegisterClient::GetUserPassword()
 
 void CInRegisterClient::SetUserPassword(CString strPassword)
 {
+	USES_CONVERSION;
+
 	int nPasswordLen = strPassword.GetLength();
 	
 	int nUserIDLen = m_szBuf[2];
-	m_szBuf[4 + nUserIDLen] = nPasswordLen;
+	m_szBuf[3 + nUserIDLen] = nPasswordLen;
 
 	BYTE szPassword[1024] = { 0 };
-	memcpy(m_szBuf + nUserIDLen + 5, strPassword.GetBuffer(nPasswordLen), nPasswordLen);
+	memcpy(m_szBuf + nUserIDLen + 4, T2A(strPassword.GetBuffer(nPasswordLen)), nPasswordLen);
+	
+	m_szBuf[1] = nUserIDLen + nPasswordLen + 2;
 }
 
 

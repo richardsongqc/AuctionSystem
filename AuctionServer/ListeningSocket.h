@@ -4,6 +4,7 @@
 
 class CListeningSocket : public CSocket
 {
+	DECLARE_DYNAMIC(CListeningSocket);
 public:
 	CListeningSocket();
 	virtual ~CListeningSocket();
@@ -13,8 +14,10 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 	// Overridable callbacks
-protected:
+
 	virtual void OnAccept(int nErrorCode);
+protected:
+	
 };
 
 

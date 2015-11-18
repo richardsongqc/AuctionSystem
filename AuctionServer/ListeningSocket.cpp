@@ -7,6 +7,7 @@
 
 
 // CListeningSocket
+IMPLEMENT_DYNAMIC(CListeningSocket, CSocket)
 
 CListeningSocket::CListeningSocket()
 {

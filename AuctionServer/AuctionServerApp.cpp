@@ -66,7 +66,7 @@ BOOL CAuctionServerApp::InitInstance()
 	m_pSocket = new CListeningSocket();
 	if (m_pSocket->Create(g_nPort + 1500)) // 700
 	{
-		std::cout << L"Start to listen the Port " << g_nPort + 1500 << std::endl;
+		std::cout << "Start to listen the Port " << g_nPort + 1500 << std::endl;
 
 		if (m_pSocket->Listen())
 			return TRUE;

@@ -183,6 +183,9 @@ BOOL CAuctionClientDoc::ConnectSocket(CString strAddress, UINT nPort)
 
 	while (!m_pSocket->Connect(strAddress, nPort + 1500)) // 700
 	{
+		DWORD    dwRet = GetLastError();
+
+		TRACE(TEXT("Fail to connect the port(%d), Error code = 0x%08X\n"), nPort + 1500, dwRet);
 		//if (AfxMessageBox(IDS_RETRYCONNECT, MB_YESNO) == IDNO)
 		//{
 		//	delete m_pSocket;
