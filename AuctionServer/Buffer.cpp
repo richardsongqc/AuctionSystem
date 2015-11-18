@@ -84,7 +84,7 @@ CString CInRegisterClient::GetUserID()
 	BYTE szBuf[1024] = { 0 };
 	memcpy(szBuf, m_szBuf + 3, nUserIDLen);
 
-	CString strUserID((TCHAR*)szBuf);
+	CString strUserID = A2T((LPCSTR)szBuf);
 
 	return strUserID;
 }
@@ -117,13 +117,15 @@ void CInRegisterClient::SetUserID(CString strUserID)
 
 CString CInRegisterClient::GetUserPassword()
 {
+	USES_CONVERSION;
+
 	int nUserIDLen = m_szBuf[2];
-	int nPasswordLen = m_szBuf[4 + nUserIDLen];
+	int nPasswordLen = m_szBuf[3 + nUserIDLen];
 
 	BYTE szBuf[1024] = { 0 };
-	memcpy(szBuf, m_szBuf + 5 + nUserIDLen, nPasswordLen);
+	memcpy(szBuf, m_szBuf + 4 + nUserIDLen, nPasswordLen);
 
-	CString strPassword((TCHAR*)szBuf);
+	CString strPassword = A2T((LPCSTR)szBuf);
 
 	return strPassword;
 }
@@ -179,20 +181,24 @@ void COutRegisterClient::SetState(bool bState)
 
 CString COutRegisterClient::GetUserName()
 {
+	USES_CONVERSION;
+
 	int nUserNameLen = m_szBuf[4];
 	BYTE szBuf[1024] = { 0 };
 	memcpy(szBuf, m_szBuf + 5, nUserNameLen);
 
-	CString strUserName((TCHAR*)szBuf);
+	CString strUserName = A2T((LPCSTR)szBuf);
 
 	return strUserName;
 }
 
 void COutRegisterClient::SetUserName(CString strUserName)
 {
+	USES_CONVERSION;
+
 	m_szBuf[4] = strUserName.GetLength();
 
-	memcpy(m_szBuf + 5, strUserName.GetBuffer(m_szBuf[4]), m_szBuf[4]);
+	memcpy(m_szBuf + 5, T2A(strUserName.GetBuffer(m_szBuf[4])), m_szBuf[4]);
 }
 
 

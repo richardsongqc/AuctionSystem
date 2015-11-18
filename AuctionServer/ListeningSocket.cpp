@@ -4,12 +4,13 @@
 #include "stdafx.h"
 #include "AuctionServer.h"
 #include "ListeningSocket.h"
+#include "AuctionServerDoc.h"
 
 
 // CListeningSocket
 IMPLEMENT_DYNAMIC(CListeningSocket, CSocket)
 
-CListeningSocket::CListeningSocket()
+CListeningSocket::CListeningSocket(CAuctionServerDoc* pDoc) : m_pDoc(pDoc)
 {
 }
 
@@ -24,7 +25,7 @@ CListeningSocket::~CListeningSocket()
 void CListeningSocket::OnAccept(int nErrorCode)
 {
 	CSocket::OnAccept(nErrorCode);
-	theApp.ProcessPendingAccept();
+	m_pDoc->ProcessPendingAccept();
 }
 
 /////////////////////////////////////////////////////////////////////////////

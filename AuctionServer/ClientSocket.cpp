@@ -3,12 +3,14 @@
 
 #include "stdafx.h"
 #include "AuctionServer.h"
+#include "AuctionServerDoc.h"
 #include "ClientSocket.h"
 
 
 // CClientSocket
 
-CClientSocket::CClientSocket()
+CClientSocket::CClientSocket(CAuctionServerDoc *pDoc) : 
+	m_pDoc(pDoc)
 {
 }
 
@@ -61,7 +63,7 @@ void CClientSocket::OnReceive(int nErrorCode)
 {
 	CSocket::OnReceive(nErrorCode);
 
-	theApp.ProcessPendingRead(this);
+	m_pDoc->ProcessPendingRead(this);
 }
 
 /////////////////////////////////////////////////////////////////////////////

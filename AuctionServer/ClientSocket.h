@@ -1,11 +1,12 @@
 #pragma once
 
 // CClientSocket command target
+class CAuctionServerDoc;
 
 class CClientSocket : public CSocket
 {
 public:
-	CClientSocket();
+	CClientSocket(CAuctionServerDoc *pDoc);
 	virtual ~CClientSocket();
 	CClientSocket(const CClientSocket& client);
 #ifdef _DEBUG
@@ -21,6 +22,7 @@ public:
 	CArchive* m_pArchiveOut;
 	BOOL IsAborted() { return m_pArchiveOut == NULL; }
 
+
 	// Operations
 public:
 	void Init();
@@ -31,7 +33,7 @@ public:
 	// Overridable callbacks
 protected:
 	virtual void OnReceive(int nErrorCode);
-
+	CAuctionServerDoc* m_pDoc;
 };
 
 

@@ -1,12 +1,14 @@
 #pragma once
 
+//#include "AuctionServerDoc.h"
+class CAuctionServerDoc;
 // CListeningSocket command target
 
 class CListeningSocket : public CSocket
 {
 	DECLARE_DYNAMIC(CListeningSocket);
 public:
-	CListeningSocket();
+	CListeningSocket(CAuctionServerDoc* pDoc);
 	virtual ~CListeningSocket();
 
 #ifdef _DEBUG
@@ -17,7 +19,7 @@ public:
 
 	virtual void OnAccept(int nErrorCode);
 protected:
-	
+	CAuctionServerDoc* m_pDoc;
 };
 
 
