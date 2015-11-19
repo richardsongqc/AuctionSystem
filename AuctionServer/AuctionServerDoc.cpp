@@ -11,6 +11,7 @@
 #include "MainFrm.h"
 #include "ClientSocket.h"
 #include "AuctionServerDoc.h"
+#include "AuctionServerView.h"
 
 #include <propkey.h>
 
@@ -65,18 +66,43 @@ CAuctionServerDoc::CAuctionServerDoc()
 		return;
 	}
 
-	m_pThreadProcessRequestQueue = AfxBeginThread(
-		ProcessRequestQueueThread,
-		this);
 
-	m_pThreadProcessResponseQueue = AfxBeginThread(
-		ProcessResponseQueueThread,
-		this);
+
 }
 
 CAuctionServerDoc::~CAuctionServerDoc()
 {
 }
+
+struct DocView
+{
+	DocView(CAuctionServerDoc* pDoc, CAuctionServerView* pView ) : 
+		m_pDoc(pDoc),
+		m_pView(pView)
+	{
+	}
+
+	~DocView()
+	{
+	}
+
+	DocView(const DocView& obj)
+	{ 
+		m_pDoc  = obj.m_pDoc ;
+		m_pView = obj.m_pView;
+	}
+
+	DocView& operator = (const DocView& obj)
+	{
+		m_pDoc = obj.m_pDoc;
+		m_pView = obj.m_pView;
+
+		return *this;
+	}
+
+	CAuctionServerDoc*	m_pDoc ;
+	CAuctionServerView* m_pView;
+};
 
 BOOL CAuctionServerDoc::OnNewDocument()
 {
@@ -93,7 +119,14 @@ BOOL CAuctionServerDoc::OnNewDocument()
 			return TRUE;
 	}
 
+//	DocView docview(this, CAuctionServerView::GetView())
+	m_pThreadProcessRequestQueue = AfxBeginThread(
+		ProcessRequestQueueThread,
+		this);
 
+	m_pThreadProcessResponseQueue = AfxBeginThread(
+		ProcessResponseQueueThread,
+		this);
 
 	return FALSE;
 }
@@ -240,7 +273,7 @@ bool CAuctionServerDoc::ValidateUser(
 			while (!m_dbConn.m_Recordset->IsEOF())
 			{
 				m_dbConn.m_Recordset->GetFieldValue(TEXT("Name"), Name);
-				strUserName = (LPSTR)Name.m_pstring;
+				strUserName = (*Name.m_pstring);
 				m_dbConn.m_Recordset->MoveNext();
 			}
 		}
@@ -263,10 +296,25 @@ CMessageQueue<CString>& CAuctionServerDoc::GetListMessage()
 	return m_listMessage;
 }
 
+void CAuctionServerDoc::UpdateAllView()
+{
+	this->UpdateAllViews(NULL);
+}
+
+CAuctionServerDoc * CAuctionServerDoc::GetDoc()
+{
+	CMainFrame * pFrame = (CMainFrame *)AfxGetMainWnd();
+	if (!pFrame)
+		return NULL;
+	return (CAuctionServerDoc *)pFrame->GetActiveDocument();
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
-UINT ProcessRequestQueueThread(LPVOID pParam)
+UINT /*CAuctionServerDoc::*/ProcessRequestQueueThread(LPVOID pParam)
 {
+	CAuctionServerDoc * pDoc = (CAuctionServerDoc*)pParam;
+
 	while (true)
 	{
 		if (msgRequestQueue.IsEmpty() == true)
@@ -276,7 +324,7 @@ UINT ProcessRequestQueueThread(LPVOID pParam)
 
 		CBuffer buffer = msgRequestQueue.Pop();
 
-		CAuctionServerDoc * pDoc = GetCurrentDoc();
+		
 		CMessageQueue<CString>& listMessage = pDoc->GetListMessage();
 		CString str;
 		switch (buffer.GetCmd())
@@ -318,6 +366,8 @@ UINT ProcessRequestQueueThread(LPVOID pParam)
 		}
 
 		pDoc->UpdateAllViews(NULL);
+		
+		//CAuctionServerView::GetView()->UpdateWindow();
 	}
 
 
@@ -326,8 +376,10 @@ UINT ProcessRequestQueueThread(LPVOID pParam)
 	return 0;
 }
 
-UINT ProcessResponseQueueThread(LPVOID pParam)
+UINT /*CAuctionServerDoc::*/ProcessResponseQueueThread(LPVOID pParam)
 {
+	CAuctionServerDoc * pDoc = (CAuctionServerDoc*)pParam;
+
 	while (true)
 	{
 		if (msgResponseQueue.IsEmpty() == true)
@@ -335,12 +387,13 @@ UINT ProcessResponseQueueThread(LPVOID pParam)
 			continue;
 		}
 
-		CAuctionServerDoc * pDoc = GetCurrentDoc();
+		
 
 		CBuffer buffer = msgResponseQueue.Pop();
-		buffer.Send(GetCurrentDoc()->m_pSocket);
+		buffer.Send(pDoc->m_pSocket);
 
-		//pDoc->UpdateAllViews(NULL);
+		pDoc->UpdateAllViews(NULL);
+		//CAuctionServerView::GetView()->UpdateWindow();
 	}
 
 	return 0;

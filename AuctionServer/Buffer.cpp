@@ -176,6 +176,8 @@ bool COutRegisterClient::GetState()
 void COutRegisterClient::SetState(bool bState)
 {
 	m_szBuf[3] = bState ? 1 : 0;
+	m_szBuf[2] = 1;
+	m_szBuf[1] = m_szBuf[2] + m_szBuf[4]+2;
 }
 
 
@@ -199,6 +201,8 @@ void COutRegisterClient::SetUserName(CString strUserName)
 	m_szBuf[4] = strUserName.GetLength();
 
 	memcpy(m_szBuf + 5, T2A(strUserName.GetBuffer(m_szBuf[4])), m_szBuf[4]);
+
+	m_szBuf[1] = m_szBuf[2] + m_szBuf[4]+2;
 }
 
 

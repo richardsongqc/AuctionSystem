@@ -48,10 +48,10 @@ public:
 		m_mutex.unlock();
 	}
 
-	T& Pop()
+	T Pop()
 	{
 		m_mutex.lock();
-		T& temp = m_queue.back();
+		T temp = m_queue.back();
 		m_queue.pop();
 		m_mutex.unlock();
 		return temp;

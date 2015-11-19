@@ -14,6 +14,9 @@
 extern CMessageQueue<CBuffer> msgRequestQueue;
 extern CMessageQueue<CBuffer> msgResponseQueue;
 
+
+
+
 class CAuctionServerDoc : public CDocument
 {
 protected: // create from serialization only
@@ -54,7 +57,7 @@ public:
 
 	CMessageQueue<CString>& GetListMessage();
 
-
+	static CAuctionServerDoc * GetDoc();
 protected:
 	CListeningSocket* m_pSocket;
 	std::vector<CClientSocket>  m_listClient;
@@ -67,6 +70,7 @@ protected:
 
 	CMessageQueue<CString>	m_listMessage;
 
+	void UpdateAllView();
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()

@@ -8,7 +8,7 @@
 #ifndef SHARED_HANDLERS
 #include "AuctionServer.h"
 #endif
-
+#include "MainFrm.h"
 #include "AuctionServerDoc.h"
 #include "AuctionServerView.h"
 
@@ -55,6 +55,52 @@ void CAuctionServerView::OnInitialUpdate()
 	CListCtrl* lstCtrl = (CListCtrl*)&(this->GetListCtrl());
 
 	lstCtrl->DeleteAllItems();
+
+	DWORD dwExStyle = lstCtrl->GetExtendedStyle();
+	CRect rcClient;
+	GetClientRect(&rcClient);
+
+	dwExStyle |= LVS_EX_GRIDLINES;
+	//dwExStyle |= LVS_EX_MULTIWORKAREAS;
+
+	lstCtrl->ModifyStyle(0, LVS_REPORT | 
+		LVS_REPORT | 
+		LVS_SINGLESEL | 
+		LVS_SHOWSELALWAYS | 
+		LVS_NOLABELWRAP | 
+		LVS_AUTOARRANGE | 
+		LVS_EDITLABELS | 
+		LVS_ALIGNLEFT | 
+		LVS_NOSORTHEADER );
+	lstCtrl->SetExtendedStyle(dwExStyle );
+
+	lstCtrl->InsertColumn(1, L"ID", LVCF_TEXT | LVCF_IMAGE | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 0.05) );
+	lstCtrl->InsertColumn(2, L"Message", LVCF_TEXT | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 4 / 5));
+	lstCtrl->InsertColumn(3, L"Debug", LVCF_TEXT | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 1 / 5));
+
+
+	//int iColumnOrder = 0;
+	//LVCOLUMNW columnInfo;
+	//columnInfo.mask = LVS_REPORT | LVCF_TEXT | LVCFMT_FIXED_WIDTH;
+	//columnInfo.pszText = L"ID";
+	//columnInfo.fmt = LVCFMT_LEFT;
+	//columnInfo.cchTextMax = 10;
+	//columnInfo.cx = columnInfo.cchTextMax * 20;// rcClient.Width() * 0.05;
+	//lstCtrl->InsertColumn(iColumnOrder, columnInfo.pszText);
+	//iColumnOrder++;
+
+	//columnInfo.pszText = L"Message";
+	//columnInfo.cchTextMax = 1024;
+	//columnInfo.cx = columnInfo.cchTextMax * 20;// rcClient.Width() * 0.5;
+	//lstCtrl->InsertColumn(iColumnOrder, columnInfo.pszText);
+	//iColumnOrder++;
+
+	//columnInfo.pszText = L"Debug";
+	//columnInfo.cchTextMax = 1024;
+	//columnInfo.cx = columnInfo.cchTextMax * 20;// rcClient.Width() * 0.4;
+	//lstCtrl->InsertColumn(iColumnOrder, columnInfo.pszText);
+	//iColumnOrder++;
+
 }
 
 
@@ -78,6 +124,25 @@ CAuctionServerDoc* CAuctionServerView::GetDocument() const // non-debug version 
 }
 #endif //_DEBUG
 
+CAuctionServerView * CAuctionServerView::GetView()
+{
+	CMainFrame * pFrame = (CMainFrame *)AfxGetMainWnd();
+	if (!pFrame)
+		return NULL;
+
+	CView * pView = pFrame->GetActiveView();
+
+	if (!pView)
+		return NULL;
+
+	// Fail if view is of wrong kind
+	// (this could occur with splitter windows, or additional
+	// views on a single document
+	if (!pView->IsKindOf(RUNTIME_CLASS(CAuctionServerView)))
+		return NULL;
+
+	return (CAuctionServerView *)pView;
+}
 
 // CAuctionServerView message handlers
 
@@ -92,9 +157,13 @@ void CAuctionServerView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject*
 
 	while (listMsg.IsEmpty() == false)
 	{
-		CString& str = listMsg.Pop();
+		CString str = listMsg.Pop();
 		int iIndex = lstCtrl->GetItemCount();
 		CString strID = lstCtrl->GetItemText(iIndex, 0);
+		int nID = _ttoi(strID);
+		nID++;
+		strID.Format(TEXT("%d"), nID);
+
 		lstCtrl->InsertItem(iIndex, strID);
 		lstCtrl->SetItemText(iIndex, 1, str);
 	}
@@ -112,39 +181,7 @@ int CAuctionServerView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 
 	// TODO:  Add your specialized creation code here
-	CListCtrl* lstCtrl = (CListCtrl*)&(this->GetListCtrl());
 
-	DWORD dwExStyle = lstCtrl->GetExtendedStyle();
-	CRect rcClient;
-	GetClientRect(&rcClient);
-
-	dwExStyle |= LVS_EX_GRIDLINES;
-	dwExStyle |= LVS_EX_MULTIWORKAREAS;
-
-	lstCtrl->ModifyStyle(0, LVS_REPORT);
-	lstCtrl->SetExtendedStyle(dwExStyle | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP);
-
-	int iColumnOrder = 0;
-	LVCOLUMNW columnInfo;
-	columnInfo.mask = LVS_REPORT | LVCF_TEXT | LVCF_WIDTH;
-	columnInfo.pszText = L"ID";
-	columnInfo.fmt = LVCFMT_LEFT;
-	columnInfo.cchTextMax = 10;
-	columnInfo.cx = rcClient.Width() * 0.05;
-	lstCtrl->InsertColumn(iColumnOrder, columnInfo.pszText);
-	iColumnOrder++;
-
-	columnInfo.pszText = L"Message";
-	columnInfo.cchTextMax = 1024;
-	columnInfo.cx = rcClient.Width() * 0.5;
-	lstCtrl->InsertColumn(iColumnOrder, columnInfo.pszText);
-	iColumnOrder++;
-
-	columnInfo.pszText = L"Debug";
-	columnInfo.cchTextMax = 1024;
-	columnInfo.cx = rcClient.Width() * 0.4;
-	lstCtrl->InsertColumn(iColumnOrder, columnInfo.pszText);
-	iColumnOrder++;
 
 	return 0;
 }
