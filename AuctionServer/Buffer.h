@@ -19,8 +19,10 @@ public:
 	int Receive(CSocket* pSocket);
 	int Send(CSocket* pSocket);
 
+    CSocket * GetSocket();
 protected:
 	BYTE  m_szBuf[1024];
+    CSocket * m_pSocket;
 };
 
 class CInRegisterClient : public CBuffer
@@ -50,6 +52,9 @@ public:
 
 	bool GetState();
 	void SetState(bool bState);
+
+    bool GetLogin();
+    void SetLogin(bool bLogin);
 
 	CString GetUserName();
 	void SetUserName(CString strUserName);

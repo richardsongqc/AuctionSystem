@@ -66,7 +66,13 @@ CAuctionServerDoc::CAuctionServerDoc()
 		return;
 	}
 
+    m_pThreadProcessRequestQueue = AfxBeginThread(
+        ProcessRequestQueueThread,
+        this);
 
+    m_pThreadProcessResponseQueue = AfxBeginThread(
+        ProcessResponseQueueThread,
+        this);
 
 }
 
@@ -120,13 +126,7 @@ BOOL CAuctionServerDoc::OnNewDocument()
 	}
 
 //	DocView docview(this, CAuctionServerView::GetView())
-	m_pThreadProcessRequestQueue = AfxBeginThread(
-		ProcessRequestQueueThread,
-		this);
 
-	m_pThreadProcessResponseQueue = AfxBeginThread(
-		ProcessResponseQueueThread,
-		this);
 
 	return FALSE;
 }
@@ -225,7 +225,6 @@ void CAuctionServerDoc::ProcessPendingAccept()
 
 	if (m_pSocket->Accept(*pSocket))
 	{
-		pSocket->Init();
 		m_listClient.push_back(*pSocket);
 		CString str(TEXT("A new connection is accepted!"));
 		m_listMessage.Push(str);
@@ -309,6 +308,23 @@ CAuctionServerDoc * CAuctionServerDoc::GetDoc()
 	return (CAuctionServerDoc *)pFrame->GetActiveDocument();
 }
 
+bool CAuctionServerDoc::CheckLogin(CString strUserID)
+{
+    bool bRet = false;
+    for (std::vector<CClientSocket>::iterator iter = m_listClient.begin();
+        iter != m_listClient.end();
+        iter++)
+    {
+        if (iter->GetUserID() == strUserID && iter->GetLogin() == true)
+        {
+            bRet = true;
+            break;
+        }
+    }
+
+    return bRet;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 UINT /*CAuctionServerDoc::*/ProcessRequestQueueThread(LPVOID pParam)
@@ -338,11 +354,16 @@ UINT /*CAuctionServerDoc::*/ProcessRequestQueueThread(LPVOID pParam)
 				CString strUserName;
 				bool bValidUser = pDoc->ValidateUser(strUserID, strPassword, strUserName);
 
+                CClientSocket * pSocket = (CClientSocket*)buffer.GetSocket();
+                pSocket->SetUserID(strUserID);
+           
 				COutRegisterClient outBuf;
 				outBuf.SetState(bValidUser);
 				if (bValidUser)
 				{
 					outBuf.SetUserName(strUserName);
+                    pSocket->SetUserName(strUserName);
+                    outBuf.SetLogin(pDoc->CheckLogin(strUserID));
 				}
 
 				msgResponseQueue.Push(outBuf);
@@ -365,7 +386,7 @@ UINT /*CAuctionServerDoc::*/ProcessRequestQueueThread(LPVOID pParam)
 			break;
 		}
 
-		pDoc->UpdateAllViews(NULL);
+		//pDoc->UpdateAllViews(NULL);
 		
 		//CAuctionServerView::GetView()->UpdateWindow();
 	}
@@ -392,7 +413,7 @@ UINT /*CAuctionServerDoc::*/ProcessResponseQueueThread(LPVOID pParam)
 		CBuffer buffer = msgResponseQueue.Pop();
 		buffer.Send(pDoc->m_pSocket);
 
-		pDoc->UpdateAllViews(NULL);
+		//pDoc->UpdateAllViews(NULL);
 		//CAuctionServerView::GetView()->UpdateWindow();
 	}
 

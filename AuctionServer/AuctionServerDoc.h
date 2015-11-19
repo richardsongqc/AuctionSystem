@@ -73,6 +73,9 @@ protected:
 	void UpdateAllView();
 // Generated message map functions
 protected:
+
+    bool CheckLogin(CString strUserID);
+
 	DECLARE_MESSAGE_MAP()
 
 #ifdef SHARED_HANDLERS

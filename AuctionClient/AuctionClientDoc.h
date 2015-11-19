@@ -50,6 +50,7 @@ public:
 protected:
 	CClientSocket* m_pSocket;
 
+    
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()

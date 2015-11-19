@@ -14,33 +14,26 @@ CClientSocket::CClientSocket(CAuctionServerDoc *pDoc) :
 {
 }
 
-CClientSocket::CClientSocket(const CClientSocket& client)
-{
 
+CClientSocket::CClientSocket(const CClientSocket& obj)
+{
+    m_pDoc        = obj.m_pDoc;
+	m_strUserID	  = obj.m_strUserID	  ;
+	m_strUserName = obj.m_strUserName ;
+	m_bLogin      = obj.m_bLogin      ;
 }
 
-//CClientSocket::~CClientSocket()
-//{
-//}
+CClientSocket& CClientSocket::operator = (const CClientSocket& obj)
+{
+    m_pDoc = obj.m_pDoc;
+    m_strUserID = obj.m_strUserID;
+    m_strUserName = obj.m_strUserName;
+    m_bLogin = obj.m_bLogin;
 
+    return *this;
+}
 
 // CClientSocket member functions
-void CClientSocket::Init()
-{
-	m_pFile = new CSocketFile(this);
-	m_pArchiveIn = new CArchive(m_pFile, CArchive::load);
-	m_pArchiveOut = new CArchive(m_pFile, CArchive::store);
-}
-
-void CClientSocket::Abort()
-{
-	if (m_pArchiveOut != NULL)
-	{
-		m_pArchiveOut->Abort();
-		delete m_pArchiveOut;
-		m_pArchiveOut = NULL;
-	}
-}
 
 //void CClientSocket::SendMsg(CMsg* pMsg)
 //{
@@ -71,14 +64,6 @@ void CClientSocket::OnReceive(int nErrorCode)
 
 CClientSocket::~CClientSocket()
 {
-	if (m_pArchiveOut != NULL)
-		delete m_pArchiveOut;
-
-	if (m_pArchiveIn != NULL)
-		delete m_pArchiveIn;
-
-	if (m_pFile != NULL)
-		delete m_pFile;
 }
 
 #ifdef _DEBUG
@@ -92,3 +77,32 @@ void CClientSocket::Dump(CDumpContext& dc) const
 	CSocket::Dump(dc);
 }
 #endif //_DEBUG
+
+CString	 CClientSocket::GetUserID()	
+{ 
+	return m_strUserID; 
+}
+
+CString	 CClientSocket::GetUserName()	
+{ 
+	return m_strUserName; 
+}
+
+bool	 CClientSocket::GetLogin()	
+{ 
+	return m_bLogin; 
+}
+
+void     CClientSocket::SetUserID(CString strUserID) 
+{ 
+	m_strUserID = strUserID; 
+}
+void     CClientSocket::SetUserName(CString strUserName) 
+{
+	m_strUserName = strUserName; 
+}
+
+void     CClientSocket::SetLogin(bool	  bLogin) 
+{ 
+	m_bLogin = bLogin; 
+}

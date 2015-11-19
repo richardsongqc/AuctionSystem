@@ -152,6 +152,7 @@ CClientSocket* CAuctionClientDoc::GetSocket()
 	return m_pSocket;
 }
 
+
 int CAuctionClientDoc::SendRequest(CBuffer inBuf, CBuffer outBuf)
 {
 	inBuf.Send(m_pSocket);

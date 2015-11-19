@@ -46,12 +46,18 @@ void CBuffer::SetData(BYTE* szData)
 
 int CBuffer::Receive(CSocket* pSocket)
 {
+    m_pSocket = pSocket;
 	return pSocket->Receive(m_szBuf, sizeof(m_szBuf));
 }
 
 int CBuffer::Send(CSocket* pSocket)
 {
 	return pSocket->Send(m_szBuf, sizeof(m_szBuf));
+}
+
+CSocket * CBuffer::GetSocket()
+{
+    return m_pSocket;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -177,9 +183,20 @@ void COutRegisterClient::SetState(bool bState)
 {
 	m_szBuf[3] = bState ? 1 : 0;
 	m_szBuf[2] = 1;
-	m_szBuf[1] = m_szBuf[2] + m_szBuf[4]+2;
+    m_szBuf[1] = m_szBuf[2] + m_szBuf[4] + m_szBuf[6] + 2;
 }
 
+bool COutRegisterClient::GetLogin()
+{
+    return m_szBuf[5] ? true : false;
+}
+
+void COutRegisterClient::SetLogin(bool bLogin)
+{
+    m_szBuf[5] = bLogin ? 1 : 0;
+    m_szBuf[4] = 1;
+    m_szBuf[1] = m_szBuf[2] + m_szBuf[4] + m_szBuf[6] + 2;
+}
 
 CString COutRegisterClient::GetUserName()
 {
@@ -187,7 +204,7 @@ CString COutRegisterClient::GetUserName()
 
 	int nUserNameLen = m_szBuf[4];
 	BYTE szBuf[1024] = { 0 };
-	memcpy(szBuf, m_szBuf + 5, nUserNameLen);
+	memcpy(szBuf, m_szBuf + 7, nUserNameLen);
 
 	CString strUserName = A2T((LPCSTR)szBuf);
 
@@ -198,11 +215,11 @@ void COutRegisterClient::SetUserName(CString strUserName)
 {
 	USES_CONVERSION;
 
-	m_szBuf[4] = strUserName.GetLength();
+	m_szBuf[6] = strUserName.GetLength();
 
-	memcpy(m_szBuf + 5, T2A(strUserName.GetBuffer(m_szBuf[4])), m_szBuf[4]);
+	memcpy(m_szBuf + 7, T2A(strUserName.GetBuffer(m_szBuf[6])), m_szBuf[6]);
 
-	m_szBuf[1] = m_szBuf[2] + m_szBuf[4]+2;
+    m_szBuf[1] = m_szBuf[2] + m_szBuf[4] + m_szBuf[6] + 2;
 }
 
 
