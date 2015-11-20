@@ -8,7 +8,7 @@
 #include "ClientSocket.h"
 #include "ListeningSocket.h"
 #include "ClassDBConnection.h"
-#include "ListMessage.h"
+#include <ListMessage.h>
 #include "Buffer.h"
 
 extern CMessageQueue<CBuffer> msgRequestQueue;

@@ -9,6 +9,7 @@
 #include "AuctionClient.h"
 #endif
 #include "MainFrm.h"
+#include <ListMessage.h>
 #include "AuctionClientDoc.h"
 
 #include <propkey.h>
@@ -16,6 +17,9 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+
+CMessageQueue<CBuffer> msgRequestQueue;
+CMessageQueue<CBuffer> msgResponseQueue;
 
 CAuctionClientDoc * GetCurrentDoc()
 {
@@ -56,6 +60,19 @@ BOOL CAuctionClientDoc::OnNewDocument()
 
 	// TODO: add reinitialization code here
 	// (SDI documents will reuse this document)
+
+    msgRequestQueue.Clean();
+    msgResponseQueue.Clean();
+
+    m_pSocket = new CClientSocket(this);
+
+    if (!m_pSocket->Create())
+    {
+        delete m_pSocket;
+        m_pSocket = NULL;
+
+        return FALSE;
+    }
 
 	return TRUE;
 }
@@ -172,15 +189,7 @@ BOOL CAuctionClientDoc::ConnectSocket(CString strAddress, UINT nPort)
 {
 	//m_strHandle = strHandle;
 
-	m_pSocket = new CClientSocket(this);
 
-	if (!m_pSocket->Create())
-	{
-		delete m_pSocket;
-		m_pSocket = NULL;
-
-		return FALSE;
-	}
 
 	while (!m_pSocket->Connect(strAddress, nPort + 1500)) // 700
 	{
@@ -218,6 +227,11 @@ void CAuctionClientDoc::ProcessPendingRead()
 	//		return;
 	//} 
 	//while (!m_pArchiveIn->IsBufferEmpty());
+
+    CBuffer     bufOutput;
+    int         nReceived = bufOutput.Receive(m_pSocket);
+
+    msgResponseQueue.Push(bufOutput);
 }
 
 void CAuctionClientDoc::ReceiveMsg()

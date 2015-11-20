@@ -36,7 +36,7 @@
 
 #include <afxsock.h>            // MFC socket extensions
 #include "..\\AuctionServer\\Buffer.h"
-
+#include <boost/thread.hpp> 
 
 
 

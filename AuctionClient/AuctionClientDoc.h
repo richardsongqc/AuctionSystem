@@ -4,8 +4,12 @@
 
 
 #pragma once
-
+#include "..\\AuctionServer\\Buffer.h"
+#include <ListMessage.h>
 #include "ClientSocket.h"
+
+extern CMessageQueue<CBuffer> msgRequestQueue;
+extern CMessageQueue<CBuffer> msgResponseQueue;
 
 class CAuctionClientDoc : public CDocument
 {
@@ -45,6 +49,8 @@ public:
 	CString m_strUserName;
 
 	CClientSocket* GetSocket();
+    friend UINT ProcessRequestQueueThread(LPVOID pParam);
+    friend UINT ProcessResponseQueueThread(LPVOID pParam);
 
 	int SendRequest(CBuffer inBuf, CBuffer outBuf);
 protected:
