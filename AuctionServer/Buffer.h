@@ -59,3 +59,5 @@ public:
 	CString GetUserName();
 	void SetUserName(CString strUserName);
 };
+
+

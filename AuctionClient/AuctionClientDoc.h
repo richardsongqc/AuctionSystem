@@ -53,10 +53,18 @@ public:
     friend UINT ProcessResponseQueueThread(LPVOID pParam);
 
 	int SendRequest(CBuffer inBuf, CBuffer outBuf);
+
+    CMessageQueue<CString>& GetListMessage();
 protected:
 	CClientSocket* m_pSocket;
 
-    
+    CMessageQueue<CString>	m_listMessage;
+
+    CWinThread	*	m_pThreadProcessRequestQueue;
+    CWinThread	*	m_pThreadProcessResponseQueue;
+
+    bool            m_bLogin;
+
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()

@@ -67,14 +67,14 @@ void CLogonDlg::OnBnClickedOk()
 	inBuf.SetUserID(strUserID);
 	inBuf.SetUserPassword(strUserPassword);
 
-	COutRegisterClient outBuf;
-	pDoc->SendRequest(inBuf, outBuf);
+	//COutRegisterClient outBuf;
+	//pDoc->SendRequest(inBuf, outBuf);
 
-	bool bValid = outBuf.GetState();
-	if (bValid)
-	{
-		pDoc->m_strUserName = outBuf.GetUserName();
-	}
+	//bool bValid = outBuf.GetState();
+	//if (bValid)
+	//{
+	//	pDoc->m_strUserName = outBuf.GetUserName();
+	//}
 
 
 
