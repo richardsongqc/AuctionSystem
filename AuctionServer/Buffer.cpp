@@ -71,14 +71,14 @@ CInRegisterClient::~CInRegisterClient()
 {
 }
 
-CInRegisterClient::CInRegisterClient(const CInRegisterClient& rIn)
+CInRegisterClient::CInRegisterClient(const CInRegisterClient& rObj)
 {
-	memcpy(m_szBuf, rIn.m_szBuf, sizeof(m_szBuf));
+	memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
 }
 
-CInRegisterClient& CInRegisterClient::operator = (const CInRegisterClient& rIn)
+CInRegisterClient& CInRegisterClient::operator = (const CInRegisterClient& rObj)
 {
-	memcpy(m_szBuf, rIn.m_szBuf, sizeof(m_szBuf));
+	memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
 	return *this;
 }
 
@@ -163,14 +163,14 @@ COutRegisterClient::~COutRegisterClient()
 {
 }
 
-COutRegisterClient::COutRegisterClient(const COutRegisterClient& rOut)
+COutRegisterClient::COutRegisterClient(const COutRegisterClient& rObj)
 {
-	memcpy(m_szBuf, rOut.m_szBuf, sizeof(m_szBuf));
+	memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
 }
 
-COutRegisterClient& COutRegisterClient::operator = (const COutRegisterClient& rOut)
+COutRegisterClient& COutRegisterClient::operator = (const COutRegisterClient& rObj)
 {
-	memcpy(m_szBuf, rOut.m_szBuf, sizeof(m_szBuf));
+	memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
 	return *this;
 }
 
@@ -223,4 +223,320 @@ void COutRegisterClient::SetUserName(CString strUserName)
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////// 
+
+CInRetrieveStock::CInRetrieveStock()
+{
+    SetCmd(CMD_RETRIEVE_STOCK_OF_CLIENT);
+}
+
+CInRetrieveStock::C~CInRetrieveStock()
+{
+}
+
+CInRetrieveStock::CCInRetrieveStock(const CInRetrieveStock& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+}
+
+CInRetrieveStock& CInRetrieveStock::Coperator = (const CInRetrieveStock& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+
+    return *this;
+}
+
+CString CInRetrieveStock::GetUserID()
+{
+	USES_CONVERSION;
+	int nUserIDLen = m_szBuf[2];
+
+	BYTE szBuf[1024] = { 0 };
+	memcpy(szBuf, m_szBuf + 3, nUserIDLen);
+
+	CString strUserID = A2T((LPCSTR)szBuf);
+
+	return strUserID;
+}
+
+void CInRetrieveStock::SetUserID(CString strUserID)
+{
+	USES_CONVERSION;
+
+	int nUserIDLen = strUserID.GetLength();
+	if (nUserIDLen == m_szBuf[2])
+	{
+		memcpy(m_szBuf + 3, strUserID.GetBuffer(nUserIDLen), nUserIDLen);
+		return;
+	}
+
+	m_szBuf[2] = nUserIDLen;
+	
+	m_szBuf[1] = nUserIDLen + 1;
+	memcpy(m_szBuf + 3, T2A(strUserID.GetBuffer(nUserIDLen)), nUserIDLen);
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////// 
+ 
+COutRetrieveStock::COutRetrieveStock()
+{
+    SetCmd(RSP_RETRIEVE_STOCK_OF_CLIENT);
+}
+
+COutRetrieveStock::~COutRetrieveStock()
+{
+}
+
+COutRetrieveStock::COutRetrieveStock(const COutRetrieveStock& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+}
+
+COutRetrieveStock& COutRetrieveStock::operator = (const COutRetrieveStock& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+
+    return *this;
+}
+
+std::vector<CProduct> COutRetrieveStock::GetListProduct()
+{
+
+
+
+}
+
+void COutRetrieveStock::SetListProduct(std::vector<CProduct> listProduct)
+{
+}
+
+/////////////////////////////////////////////////////////////////////////////// 
+ 
+CInAdvertising::CInAdvertising()
+{
+    SetCmd(CMD_ADVERTISING);
+}
+
+CInAdvertising::~CInAdvertising()
+{
+}
+
+CInAdvertising::CInAdvertising(const CInAdvertising& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+}
+
+CInAdvertising& CInAdvertising::operator = (const CInAdvertising& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+
+    return *this;
+}
+
+void CInAdvertising::SetProductID(DWORD lProductID)
+{
+}
+
+long CInAdvertising::GetProductID()
+{
+
+}
+
+void CInAdvertising::SetProductCount( DWORD lProductCount)
+{
+
+}
+
+long CInAdvertising::GetProductCount()
+{
+
+}
+
+void CInAdvertising::SetProductPrice( double dblProductPrice)
+{
+
+}
+
+double CInAdvertising::GetProductPrice()
+{
+
+}
+
+void CInAdvertising::SetProductName( CString strProductName)
+{
+
+}
+
+CString CInAdvertising::GetProductName()
+{
+
+}
+
+/////////////////////////////////////////////////////////////////////////////// 
+
+COutAdvertising::COutAdvertising()
+{
+    SetCmd(RSP_ADVERTISING);
+}
+
+COutAdvertising::~COutAdvertising()
+{
+
+}
+
+COutAdvertising::COutAdvertising(const COutAdvertising& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+}
+
+COutAdvertising& COutAdvertising::operator = (const COutAdvertising& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+    return *this;
+}
+
+bool COutAdvertising::GetState()
+{
+
+}
+
+void COutAdvertising::SetState(bool bState)
+{
+}
+
+/////////////////////////////////////////////////////////////////////////////// 
+
+CInAuction::CInAuction()
+{
+    SetCmd(CMD_BID);
+}
+
+CInAuction::~CInAuction()
+{
+}
+
+
+CInAuction::CInAuction(const CInAuction& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+}
+
+CInAuction& CInAuction::operator = (const CInAuction& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+
+    return *this;
+}
+
+
+void CInAuction::SetProductID(DWORD lProductID)
+{
+}
+
+long CInAuction::GetProductID()
+{
+}
+
+void CInAuction::SetProductCount( DWORD lProductCount)
+{
+}
+
+long CInAuction::GetProductCount()
+{
+}
+
+void CInAuction::SetProductPrice( double dblProductPrice)
+{
+}
+
+double CInAuction::GetProductPrice()
+{
+}
+
+void CInAuction::SetProductName( CString strProductName)
+{
+}
+
+CString CInAuction::GetProductName()
+{
+}
+     
+/////////////////////////////////////////////////////////////////////////////// 
+
+COutAuction::COutAuction()
+{
+    SetCmd(RSP_BID);
+}
+
+COutAuction::~COutAuction()
+{
+}
+
+COutAuction::COutAuction(const COutAuction& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+}
+
+COutAuction& COutAuction::operator = (const COutAuction& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+
+    return *this;
+}
+
+bool COutAuction::GetState()
+{
+
+}
+
+void COutAuction::SetState(bool bState)
+{
+
+}
+
+void COutAuction::SetMaxBidPrice( double dblMaxBidPrice)
+{
+
+}
+
+double COutAuction::GetMaxBidPrice()
+{
+
+}
+     
+/////////////////////////////////////////////////////////////////////////////// 
+ 
+/////////////////////////////////////////////////////////////////////////////// 
+ 
+/////////////////////////////////////////////////////////////////////////////// 
+ 
+/////////////////////////////////////////////////////////////////////////////// 
+ 
+/////////////////////////////////////////////////////////////////////////////// 
+ 
+/////////////////////////////////////////////////////////////////////////////// 
+  
+/////////////////////////////////////////////////////////////////////////////// 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

@@ -43,6 +43,8 @@ public:
 	void SetUserPassword(CString strPassword);
 };
 
+///////////////////////////////////////////////////////////////////////////////
+
 class COutRegisterClient : public CBuffer
 {
 public:
@@ -163,6 +165,8 @@ public:
     void SetUserID(CString strUserID);
 };
 
+///////////////////////////////////////////////////////////////////////////////
+
 class COutRetrieveStock : public CBuffer
 {
 public:
@@ -188,12 +192,18 @@ public:
     CInAdvertising(const CInAdvertising& rIn);
     CInAdvertising& operator = (const CInAdvertising& rIn);
 
-    CString GetUserID();
-    void SetUserID(CString strUserID);
+	void SetProductID(DWORD lProductID);
+	long GetProductID();
+	void SetProductCount( DWORD lProductCount);
+    long GetProductCount();
+	void SetProductPrice( double dblProductPrice);
+	double GetProductPrice();
+	void SetProductName( CString strProductName);
+	CString GetProductName();
 
-    CString GetUserPassword();
-    void SetUserPassword(CString strPassword);
 };
+
+///////////////////////////////////////////////////////////////////////////////
 
 class COutAdvertising : public CBuffer
 {
@@ -206,22 +216,48 @@ public:
 
     bool GetState();
     void SetState(bool bState);
-
-    bool GetLogin();
-    void SetLogin(bool bLogin);
-
-    CString GetUserName();
-    void SetUserName(CString strUserName);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
+class CInAuction : public CBuffer
+{
+public:
+    CInAuction();
+    ~CInAuction();
+
+    CInAuction(const CInAuction& rIn);
+    CInAuction& operator = (const CInAuction& rIn);
+
+	void SetProductID(DWORD lProductID);
+	long GetProductID();
+	void SetProductCount( DWORD lProductCount);
+    long GetProductCount();
+	void SetProductPrice( double dblProductPrice);
+	double GetProductPrice();
+	void SetProductName( CString strProductName);
+	CString GetProductName();
+
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
+class COutAuction  : public CBuffer
+{
+public:
+    COutAuction();
+    ~COutAuction();
 
-///////////////////////////////////////////////////////////////////////////////
+    COutAuction(const COutAuction& rOut);
+    COutAuction& operator = (const COutAuction& rOut);
 
+    bool GetState();
+    void SetState(bool bState);
+
+	void SetMaxBidPrice( double dblMaxBidPrice);
+	double GetMaxBidPrice();
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 
