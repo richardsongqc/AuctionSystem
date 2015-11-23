@@ -123,6 +123,7 @@ BEGIN
         MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "Login",                       ID_EDIT_LOGIN
     END
     POPUP "&View"
     BEGIN
@@ -175,11 +176,15 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
 END
 
-IDD_AUCTIONCLIENT_FORM DIALOGEX 0, 0, 320, 200
+IDD_AUCTIONCLIENT_FORM DIALOGEX 0, 0, 386, 236
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    LTEXT           "TODO: Place form controls on this dialog.",IDC_STATIC,24,42,280,8
+    LTEXT           "User ID",IDC_STATIC,18,18,36,11
+    GROUPBOX        "User Profile",IDC_STATIC,6,6,156,54
+    LTEXT           "User Name",IDC_STATIC,18,36,36,11
+    LTEXT           "",IDC_STATIC_USER_ID,60,18,90,8
+    LTEXT           "",IDC_STATIC_USER_NAME,60,36,90,8
 END
 
 IDD_LOGONDLG DIALOGEX 0, 0, 195, 93
@@ -254,9 +259,9 @@ BEGIN
     IDD_AUCTIONCLIENT_FORM, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 313
+        RIGHTMARGIN, 379
         TOPMARGIN, 7
-        BOTTOMMARGIN, 193
+        BOTTOMMARGIN, 229
     END
 
     IDD_LOGONDLG, DIALOG

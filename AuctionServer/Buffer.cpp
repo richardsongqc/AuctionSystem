@@ -183,7 +183,7 @@ void COutRegisterClient::SetState(bool bState)
 {
 	m_szBuf[3] = bState ? 1 : 0;
 	m_szBuf[2] = 1;
-    m_szBuf[1] = m_szBuf[2] + m_szBuf[4] + m_szBuf[6] + 2;
+    m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
 }
 
 bool COutRegisterClient::GetLogin()
@@ -195,14 +195,14 @@ void COutRegisterClient::SetLogin(bool bLogin)
 {
     m_szBuf[5] = bLogin ? 1 : 0;
     m_szBuf[4] = 1;
-    m_szBuf[1] = m_szBuf[2] + m_szBuf[4] + m_szBuf[6] + 2;
+    m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
 }
 
 CString COutRegisterClient::GetUserName()
 {
 	USES_CONVERSION;
 
-	int nUserNameLen = m_szBuf[4];
+	int nUserNameLen = m_szBuf[6];
 	BYTE szBuf[1024] = { 0 };
 	memcpy(szBuf, m_szBuf + 7, nUserNameLen);
 
@@ -219,7 +219,7 @@ void COutRegisterClient::SetUserName(CString strUserName)
 
 	memcpy(m_szBuf + 7, T2A(strUserName.GetBuffer(m_szBuf[6])), m_szBuf[6]);
 
-    m_szBuf[1] = m_szBuf[2] + m_szBuf[4] + m_szBuf[6] + 2;
+    m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
 }
 
 

@@ -52,8 +52,8 @@ public:
 
 	bool ValidateUser(CString strUserID, CString strPassword, CString& strUserName);
 
-	friend UINT ProcessRequestQueueThread(LPVOID pParam);
-	friend UINT ProcessResponseQueueThread(LPVOID pParam);
+	//friend UINT ProcessRequestQueueThread(LPVOID pParam);
+	//friend UINT ProcessResponseQueueThread(LPVOID pParam);
 
 	CMessageQueue<CString>& GetListMessage();
 
@@ -61,14 +61,13 @@ public:
 protected:
 	CListeningSocket* m_pSocket;
 	std::vector<CClientSocket>  m_listClient;
+    CMessageQueue<CString>	m_listMessage;
 
 	ClassDBConnection m_dbConn;
 
-	CWinThread	*	m_pThreadProcessRequestQueue;
-	CWinThread	*	m_pThreadProcessResponseQueue;
-	CMutex *		m_pMutex;
-
-	CMessageQueue<CString>	m_listMessage;
+	//CWinThread	*	m_pThreadProcessRequestQueue;
+	//CWinThread	*	m_pThreadProcessResponseQueue;
+	//CMutex *		m_pMutex;
 
 	void UpdateAllView();
 // Generated message map functions

@@ -24,4 +24,6 @@ public:
 	CEdit m_edtUserID;
 //	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedOk();
+//    virtual void OnOK();
+    virtual void PostNcDestroy();
 };

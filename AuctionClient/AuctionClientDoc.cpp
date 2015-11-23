@@ -47,17 +47,20 @@ END_MESSAGE_MAP()
 CAuctionClientDoc::CAuctionClientDoc()
 {
 	// TODO: add one-time construction code here
-    m_pThreadProcessRequestQueue = AfxBeginThread(
-        ProcessRequestQueueThread,
-        this);
+    //m_pThreadProcessRequestQueue = AfxBeginThread(
+    //    ProcessRequestQueueThread,
+    //    this);
 
-    m_pThreadProcessResponseQueue = AfxBeginThread(
-        ProcessResponseQueueThread,
-        this);
+    //m_pThreadProcessResponseQueue = AfxBeginThread(
+    //    ProcessResponseQueueThread,
+    //    this);
+
+    m_hEvtReceive = CreateEvent(NULL, FALSE, TRUE, NULL);
 }
 
 CAuctionClientDoc::~CAuctionClientDoc()
 {
+    CloseHandle(m_hEvtReceive);
 }
 
 BOOL CAuctionClientDoc::OnNewDocument()
@@ -177,20 +180,82 @@ CClientSocket* CAuctionClientDoc::GetSocket()
 }
 
 
-int CAuctionClientDoc::SendRequest(CBuffer inBuf, CBuffer outBuf)
+int CAuctionClientDoc::SendRequest(CBuffer inBuf, CBuffer& outBuf)
 {
 	inBuf.Send(m_pSocket);
-	while (true)
-	{
-		int nLen = outBuf.Receive(m_pSocket);
-		if (nLen > 0)
-		{
-			break;
-		}
-	}
+
+    DWORD dwRet = WaitForSingleObject(m_hEvtReceive, INFINITE);// No wait for object
+    switch (dwRet)
+    {
+    case WAIT_OBJECT_0:
+        {
+            int nLen = outBuf.Receive(m_pSocket);
+            if (nLen > 0)
+            {
+                break;
+            }
+        }
+        break;
+
+    default:
+        break;
+ 
+    }
 
 	return 0;
 }
+
+void CAuctionClientDoc::SetValid(bool bValid)
+{
+    m_bValid = bValid;
+}
+
+bool CAuctionClientDoc::GetValid()
+{
+    return m_bValid;
+}
+
+void CAuctionClientDoc::SetLogin(bool bLogin)
+{
+    m_bLogin = bLogin;
+}
+
+bool CAuctionClientDoc::GetLogin()
+{
+    return m_bLogin;
+}
+
+void    CAuctionClientDoc::SetUserID(CString strUserID) 
+{ 
+    m_strUserID = strUserID; 
+}
+
+CString CAuctionClientDoc::GetUserID()                  
+{ 
+    return m_strUserID; 
+}
+
+void    CAuctionClientDoc::SetUserPassword(CString strPassword) 
+{ 
+    m_strUserPassword = strPassword; 
+}
+
+CString CAuctionClientDoc::GetUserPassword()                    
+{ 
+    return m_strUserPassword; 
+}
+
+void    CAuctionClientDoc::SetUserName(CString strUserName)    
+{ 
+    m_strUserName = strUserName; 
+}
+
+CString CAuctionClientDoc::GetUserName()                       
+{
+    return  m_strUserName; 
+}
+
+
 
 BOOL CAuctionClientDoc::ConnectSocket(CString strAddress, UINT nPort)
 {
@@ -234,9 +299,11 @@ void CAuctionClientDoc::ProcessPendingRead()
 	//		return;
 	//} 
 	//while (!m_pArchiveIn->IsBufferEmpty());
+    SetEvent(m_hEvtReceive);
 
     CBuffer     bufOutput;
     int         nReceived = bufOutput.Receive(m_pSocket);
+
 
     msgResponseQueue.Push(bufOutput);
 }
@@ -293,98 +360,98 @@ void CAuctionClientDoc::ReceiveMsg()
 }
 
 
-UINT ProcessRequestQueueThread(LPVOID pParam)
-{
-    CAuctionClientDoc * pDoc = (CAuctionClientDoc*)pParam;
-
-    while (true)
-    {
-        if (msgRequestQueue.IsEmpty() == true)
-        {
-            continue;
-        }
-
-
-
-        CBuffer buffer = msgRequestQueue.Pop();
-        buffer.Send(pDoc->m_pSocket);
-
-        //pDoc->UpdateAllViews(NULL);
-        //CAuctionServerView::GetView()->UpdateWindow();
-    }
-
-    return 0;
-}
-
-UINT ProcessResponseQueueThread(LPVOID pParam)
-{
-    CAuctionClientDoc * pDoc = (CAuctionClientDoc*)pParam;
-
-    while (true)
-    {
-        if (msgResponseQueue.IsEmpty() == true)
-        {
-            continue;
-        }
-
-        CBuffer buffer = msgResponseQueue.Pop();
-
-
-        CMessageQueue<CString>& listMessage = pDoc->GetListMessage();
-        CString str;
-        switch (buffer.GetCmd())
-        {
-        case RSP_REGISTER_CLIENT:
-        {
-            COutRegisterClient* outBuf = (COutRegisterClient*)&buffer;
-
-            //CInRegisterClient* inBuf = (CInRegisterClient*)&buffer;
-            //CString strUserID = inBuf->GetUserID();
-            //CString strPassword = inBuf->GetUserPassword();
-            bool bValidUser = outBuf->GetState();
-            pDoc->m_bLogin = outBuf->GetLogin();
-            pDoc->m_strUserName = outBuf->GetUserName();
-
-            //CString strUserName;
-            //bool bValidUser = pDoc->ValidateUser(strUserID, strPassword, strUserName);
-
-            //CClientSocket * pSocket = (CClientSocket*)buffer.GetSocket();
-            //pSocket->SetUserID(strUserID);
-
-            //COutRegisterClient outBuf;
-            //outBuf.SetState(bValidUser);
-            //if (bValidUser)
-            //{
-            //    outBuf.SetUserName(strUserName);
-            //    pSocket->SetUserName(strUserName);
-            //    outBuf.SetLogin(pDoc->CheckLogin(strUserID));
-            //}
-
-            //msgResponseQueue.Push(outBuf);
-            //str.Format(TEXT("UserID = %s, UserName = %s"), strUserID, strUserName);
-
-            listMessage.Push(str);
-        }
-        break;
-        case RSP_RETRIEVE_STOCK_OF_CLIENT:
-        {
-        }
-        break;
-        case RSP_ADVERTISING:
-        {
-        }
-        break;
-        case RSP_BID:
-        {
-        }
-        break;
-        }
-
-        //pDoc->UpdateAllViews(NULL);
-
-        //CAuctionServerView::GetView()->UpdateWindow();
-    }
-
-
-    return 0;
-}
+//UINT ProcessRequestQueueThread(LPVOID pParam)
+//{
+//    CAuctionClientDoc * pDoc = (CAuctionClientDoc*)pParam;
+//
+//    while (true)
+//    {
+//        if (msgRequestQueue.IsEmpty() == true)
+//        {
+//            continue;
+//        }
+//
+//
+//
+//        CBuffer buffer = msgRequestQueue.Pop();
+//        buffer.Send(pDoc->m_pSocket);
+//
+//        //pDoc->UpdateAllViews(NULL);
+//        //CAuctionServerView::GetView()->UpdateWindow();
+//    }
+//
+//    return 0;
+//}
+//
+//UINT ProcessResponseQueueThread(LPVOID pParam)
+//{
+//    CAuctionClientDoc * pDoc = (CAuctionClientDoc*)pParam;
+//
+//    while (true)
+//    {
+//        if (msgResponseQueue.IsEmpty() == true)
+//        {
+//            continue;
+//        }
+//
+//        CBuffer buffer = msgResponseQueue.Pop();
+//
+//
+//        CMessageQueue<CString>& listMessage = pDoc->GetListMessage();
+//        CString str;
+//        switch (buffer.GetCmd())
+//        {
+//        case RSP_REGISTER_CLIENT:
+//        {
+//            COutRegisterClient* outBuf = (COutRegisterClient*)&buffer;
+//
+//            //CInRegisterClient* inBuf = (CInRegisterClient*)&buffer;
+//            //CString strUserID = inBuf->GetUserID();
+//            //CString strPassword = inBuf->GetUserPassword();
+//            bool bValidUser = outBuf->GetState();
+//            pDoc->m_bLogin = outBuf->GetLogin();
+//            pDoc->m_strUserName = outBuf->GetUserName();
+//
+//            //CString strUserName;
+//            //bool bValidUser = pDoc->ValidateUser(strUserID, strPassword, strUserName);
+//
+//            //CClientSocket * pSocket = (CClientSocket*)buffer.GetSocket();
+//            //pSocket->SetUserID(strUserID);
+//
+//            //COutRegisterClient outBuf;
+//            //outBuf.SetState(bValidUser);
+//            //if (bValidUser)
+//            //{
+//            //    outBuf.SetUserName(strUserName);
+//            //    pSocket->SetUserName(strUserName);
+//            //    outBuf.SetLogin(pDoc->CheckLogin(strUserID));
+//            //}
+//
+//            //msgResponseQueue.Push(outBuf);
+//            //str.Format(TEXT("UserID = %s, UserName = %s"), strUserID, strUserName);
+//
+//            listMessage.Push(str);
+//        }
+//        break;
+//        case RSP_RETRIEVE_STOCK_OF_CLIENT:
+//        {
+//        }
+//        break;
+//        case RSP_ADVERTISING:
+//        {
+//        }
+//        break;
+//        case RSP_BID:
+//        {
+//        }
+//        break;
+//        }
+//
+//        //pDoc->UpdateAllViews(NULL);
+//
+//        //CAuctionServerView::GetView()->UpdateWindow();
+//    }
+//
+//
+//    return 0;
+//}

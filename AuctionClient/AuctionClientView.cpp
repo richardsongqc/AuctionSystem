@@ -22,6 +22,7 @@
 IMPLEMENT_DYNCREATE(CAuctionClientView, CFormView)
 
 BEGIN_MESSAGE_MAP(CAuctionClientView, CFormView)
+    ON_COMMAND(ID_EDIT_LOGIN, &CAuctionClientView::OnEditLogin)
 END_MESSAGE_MAP()
 
 // CAuctionClientView construction/destruction
@@ -46,7 +47,9 @@ CAuctionClientView::~CAuctionClientView()
 
 void CAuctionClientView::DoDataExchange(CDataExchange* pDX)
 {
-	CFormView::DoDataExchange(pDX);
+    CFormView::DoDataExchange(pDX);
+    DDX_Control(pDX, IDC_STATIC_USER_ID, m_lblUserID);
+    DDX_Control(pDX, IDC_STATIC_USER_NAME, m_lblUserName);
 }
 
 BOOL CAuctionClientView::PreCreateWindow(CREATESTRUCT& cs)
@@ -80,7 +83,7 @@ void CAuctionClientView::OnInitialUpdate()
 		m_pLogonDlg->Create(CLogonDlg::IDD);
 	}
 
-	m_pLogonDlg->ShowWindow(SW_SHOW);
+	
 }
 
 
@@ -106,3 +109,29 @@ CAuctionClientDoc* CAuctionClientView::GetDocument() const // non-debug version 
 
 
 // CAuctionClientView message handlers
+
+
+void CAuctionClientView::OnEditLogin()
+{
+    // TODO: Add your command handler code here
+
+    m_pLogonDlg->ShowWindow(SW_SHOW);
+}
+
+
+void CAuctionClientView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/)
+{
+    // TODO: Add your specialized code here and/or call the base class
+    CAuctionClientDoc * pDoc = GetDocument();
+
+    bool bValid = pDoc->GetValid();
+    
+    if (bValid && pDoc->GetLogin()==false)
+    {
+        CString strUserID = pDoc->GetUserID();
+        CString strUserName = pDoc->GetUserName();
+        
+        m_lblUserID.SetWindowText(strUserID);
+        m_lblUserName.SetWindowText(strUserName);
+    }
+}

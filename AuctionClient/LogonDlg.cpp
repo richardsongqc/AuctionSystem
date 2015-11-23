@@ -50,6 +50,8 @@ void CLogonDlg::OnBnClickedOk()
 	// TODO: Add your control notification handler code here
 	CString strUserID;
 	CString strUserPassword;
+    CString str;
+
 
 	m_edtUserID.GetWindowText(strUserID);
 	m_edtPassword.GetWindowText(strUserPassword);
@@ -60,23 +62,54 @@ void CLogonDlg::OnBnClickedOk()
 		return;
 	}
 
-	pDoc->m_strUserID = strUserID;
-	pDoc->m_strUserPassword = strUserPassword;
+	pDoc->SetUserID(strUserID);
+	pDoc->SetUserPassword(strUserPassword);
 
 	CInRegisterClient inBuf;
 	inBuf.SetUserID(strUserID);
 	inBuf.SetUserPassword(strUserPassword);
+        
+	COutRegisterClient outBuf;
+	pDoc->SendRequest(inBuf, outBuf);
 
-	//COutRegisterClient outBuf;
-	//pDoc->SendRequest(inBuf, outBuf);
+	bool bValid = outBuf.GetState();
+    pDoc->SetValid(bValid);
+    pDoc->SetLogin(outBuf.GetLogin());
+	if (bValid)
+	{
+		pDoc->SetUserName( outBuf.GetUserName() );
 
-	//bool bValid = outBuf.GetState();
-	//if (bValid)
-	//{
-	//	pDoc->m_strUserName = outBuf.GetUserName();
-	//}
+        if (outBuf.GetLogin()== false)
+        {
+            CDialog::OnOK();
+            pDoc->UpdateAllViews(NULL);
+            return;
+        }
+
+        str = L"This user has already be logined. Please input again.";
+	}
+    else
+    {
+        str = L"User name and password are incorrect. Please input again.";
+    }
+    
+    AfxMessageBox(str);
+	
+}
 
 
+//void CLogonDlg::OnOK()
+//{
+//    // TODO: Add your specialized code here and/or call the base class
+//
+//    CDialog::OnOK();
+//}
 
-	CDialog::OnOK();
+
+void CLogonDlg::PostNcDestroy()
+{
+    // TODO: Add your specialized code here and/or call the base class
+
+    CDialog::PostNcDestroy();
+    delete this;
 }

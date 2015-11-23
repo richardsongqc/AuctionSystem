@@ -66,13 +66,13 @@ CAuctionServerDoc::CAuctionServerDoc()
 		return;
 	}
 
-    m_pThreadProcessRequestQueue = AfxBeginThread(
-        ProcessRequestQueueThread,
-        this);
+    //m_pThreadProcessRequestQueue = AfxBeginThread(
+    //    ProcessRequestQueueThread,
+    //    this);
 
-    m_pThreadProcessResponseQueue = AfxBeginThread(
-        ProcessResponseQueueThread,
-        this);
+    //m_pThreadProcessResponseQueue = AfxBeginThread(
+    //    ProcessResponseQueueThread,
+    //    this);
 
 }
 
@@ -241,8 +241,52 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
 {
 	CBuffer buffer;
 	int nLen = buffer.Receive(pSocket);
+    CString str;
+    switch (buffer.GetCmd())
+    {
+    case CMD_REGISTER_CLIENT:
+        {
+            CInRegisterClient* inBuf = (CInRegisterClient*)&buffer;
+            CString strUserID = inBuf->GetUserID();
+            CString strPassword = inBuf->GetUserPassword();
 
-	msgRequestQueue.Push(buffer);
+            CString strUserName;
+            bool bValidUser = ValidateUser(strUserID, strPassword, strUserName);
+
+            pSocket->SetUserID(strUserID);
+
+            COutRegisterClient outBuf;
+            outBuf.SetState(bValidUser);
+            if (bValidUser)
+            {
+                outBuf.SetUserName(strUserName);
+                pSocket->SetUserName(strUserName);
+                outBuf.SetLogin(CheckLogin(strUserID));
+            }
+
+            outBuf.Send(pSocket);
+            str.Format(TEXT("UserID = %s, UserName = %s"), strUserID, strUserName);
+
+            m_listMessage.Push(str);
+        }
+        break;
+    case CMD_RETRIEVE_STOCK_OF_CLIENT:
+        {
+        }
+        break;
+    case CMD_ADVERTISING:
+        {
+        }
+        break;
+    case CMD_BID:
+        {
+        }
+        break;
+    }
+
+    UpdateAllViews(NULL);
+
+    //CAuctionServerView::GetView()->UpdateWindow();
 }
 
 void CAuctionServerDoc::ProcessInQueue()
@@ -327,95 +371,95 @@ bool CAuctionServerDoc::CheckLogin(CString strUserID)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-UINT /*CAuctionServerDoc::*/ProcessRequestQueueThread(LPVOID pParam)
-{
-	CAuctionServerDoc * pDoc = (CAuctionServerDoc*)pParam;
-
-	while (true)
-	{
-		if (msgRequestQueue.IsEmpty() == true)
-		{
-			continue;
-		}
-
-		CBuffer buffer = msgRequestQueue.Pop();
-
-		
-		CMessageQueue<CString>& listMessage = pDoc->GetListMessage();
-		CString str;
-		switch (buffer.GetCmd())
-		{
-		case CMD_REGISTER_CLIENT:
-			{
-				CInRegisterClient* inBuf = (CInRegisterClient*)&buffer;
-				CString strUserID = inBuf->GetUserID();
-				CString strPassword = inBuf->GetUserPassword();
-
-				CString strUserName;
-				bool bValidUser = pDoc->ValidateUser(strUserID, strPassword, strUserName);
-
-                CClientSocket * pSocket = (CClientSocket*)buffer.GetSocket();
-                pSocket->SetUserID(strUserID);
-           
-				COutRegisterClient outBuf;
-				outBuf.SetState(bValidUser);
-				if (bValidUser)
-				{
-					outBuf.SetUserName(strUserName);
-                    pSocket->SetUserName(strUserName);
-                    outBuf.SetLogin(pDoc->CheckLogin(strUserID));
-				}
-
-				msgResponseQueue.Push(outBuf);
-				str.Format(TEXT("UserID = %s, UserName = %s"), strUserID, strUserName);
-			
-				listMessage.Push(str);
-			}
-			break;
-		case CMD_RETRIEVE_STOCK_OF_CLIENT:
-			{
-			}
-			break;
-		case CMD_ADVERTISING:
-			{
-			}
-			break;
-		case CMD_BID:
-			{
-			}
-			break;
-		}
-
-		//pDoc->UpdateAllViews(NULL);
-		
-		//CAuctionServerView::GetView()->UpdateWindow();
-	}
-
-
-	
-
-	return 0;
-}
-
-UINT /*CAuctionServerDoc::*/ProcessResponseQueueThread(LPVOID pParam)
-{
-	CAuctionServerDoc * pDoc = (CAuctionServerDoc*)pParam;
-
-	while (true)
-	{
-		if (msgResponseQueue.IsEmpty() == true)
-		{
-			continue;
-		}
-
-		
-
-		CBuffer buffer = msgResponseQueue.Pop();
-		buffer.Send(pDoc->m_pSocket);
-
-		//pDoc->UpdateAllViews(NULL);
-		//CAuctionServerView::GetView()->UpdateWindow();
-	}
-
-	return 0;
-}
+//UINT /*CAuctionServerDoc::*/ProcessRequestQueueThread(LPVOID pParam)
+//{
+//	CAuctionServerDoc * pDoc = (CAuctionServerDoc*)pParam;
+//
+//	while (true)
+//	{
+//		if (msgRequestQueue.IsEmpty() == true)
+//		{
+//			continue;
+//		}
+//
+//		CBuffer buffer = msgRequestQueue.Pop();
+//
+//		
+//		CMessageQueue<CString>& listMessage = pDoc->GetListMessage();
+//		CString str;
+//		switch (buffer.GetCmd())
+//		{
+//		case CMD_REGISTER_CLIENT:
+//			{
+//				CInRegisterClient* inBuf = (CInRegisterClient*)&buffer;
+//				CString strUserID = inBuf->GetUserID();
+//				CString strPassword = inBuf->GetUserPassword();
+//
+//				CString strUserName;
+//				bool bValidUser = pDoc->ValidateUser(strUserID, strPassword, strUserName);
+//
+//                CClientSocket * pSocket = (CClientSocket*)buffer.GetSocket();
+//                pSocket->SetUserID(strUserID);
+//           
+//				COutRegisterClient outBuf;
+//				outBuf.SetState(bValidUser);
+//				if (bValidUser)
+//				{
+//					outBuf.SetUserName(strUserName);
+//                    pSocket->SetUserName(strUserName);
+//                    outBuf.SetLogin(pDoc->CheckLogin(strUserID));
+//				}
+//
+//				msgResponseQueue.Push(outBuf);
+//				str.Format(TEXT("UserID = %s, UserName = %s"), strUserID, strUserName);
+//			
+//				listMessage.Push(str);
+//			}
+//			break;
+//		case CMD_RETRIEVE_STOCK_OF_CLIENT:
+//			{
+//			}
+//			break;
+//		case CMD_ADVERTISING:
+//			{
+//			}
+//			break;
+//		case CMD_BID:
+//			{
+//			}
+//			break;
+//		}
+//
+//		//pDoc->UpdateAllViews(NULL);
+//		
+//		//CAuctionServerView::GetView()->UpdateWindow();
+//	}
+//
+//
+//	
+//
+//	return 0;
+//}
+//
+//UINT /*CAuctionServerDoc::*/ProcessResponseQueueThread(LPVOID pParam)
+//{
+//	CAuctionServerDoc * pDoc = (CAuctionServerDoc*)pParam;
+//
+//	while (true)
+//	{
+//		if (msgResponseQueue.IsEmpty() == true)
+//		{
+//			continue;
+//		}
+//
+//		
+//
+//		CBuffer buffer = msgResponseQueue.Pop();
+//		buffer.Send(pDoc->m_pSocket);
+//
+//		//pDoc->UpdateAllViews(NULL);
+//		//CAuctionServerView::GetView()->UpdateWindow();
+//	}
+//
+//	return 0;
+//}

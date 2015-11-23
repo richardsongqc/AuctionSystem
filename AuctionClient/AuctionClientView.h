@@ -6,6 +6,7 @@
 
 #include "resource.h"
 #include "LogonDlg.h"
+#include "afxwin.h"
 
 class CAuctionClientView : public CFormView
 {
@@ -44,6 +45,11 @@ protected:
 protected:
 	DECLARE_MESSAGE_MAP()
 	CLogonDlg * m_pLogonDlg;
+public:
+    afx_msg void OnEditLogin();
+    virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
+    CStatic m_lblUserID;
+    CStatic m_lblUserName;
 };
 
 #ifndef _DEBUG  // debug version in AuctionClientView.cpp

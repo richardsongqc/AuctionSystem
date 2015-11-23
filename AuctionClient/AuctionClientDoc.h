@@ -44,27 +44,46 @@ public:
 	void ProcessPendingRead();
 	void ReceiveMsg();
 
-	CString m_strUserID;
-	CString m_strUserPassword;
-	CString m_strUserName;
+
 
 	CClientSocket* GetSocket();
-    friend UINT ProcessRequestQueueThread(LPVOID pParam);
-    friend UINT ProcessResponseQueueThread(LPVOID pParam);
+    //friend UINT ProcessRequestQueueThread(LPVOID pParam);
+    //friend UINT ProcessResponseQueueThread(LPVOID pParam);
 
-	int SendRequest(CBuffer inBuf, CBuffer outBuf);
+	int SendRequest(CBuffer inBuf, CBuffer& outBuf);
 
     CMessageQueue<CString>& GetListMessage();
+
+    void            SetValid(bool bValid);
+    bool            GetValid();
+
+    void            SetLogin(bool bLOgin);
+    bool            GetLogin();
+
+    void            SetUserID(CString strUserID);
+    CString         GetUserID();
+
+    void            SetUserPassword(CString strPassword);
+    CString         GetUserPassword();
+
+    void            SetUserName(CString strUserName);
+    CString         GetUserName();
+
 protected:
 	CClientSocket* m_pSocket;
 
     CMessageQueue<CString>	m_listMessage;
 
-    CWinThread	*	m_pThreadProcessRequestQueue;
-    CWinThread	*	m_pThreadProcessResponseQueue;
+    //CWinThread	*	m_pThreadProcessRequestQueue;
+    //CWinThread	*	m_pThreadProcessResponseQueue;
 
+    bool            m_bValid;
     bool            m_bLogin;
+    HANDLE          m_hEvtReceive;
 
+    CString         m_strUserID;
+    CString         m_strUserPassword;
+    CString         m_strUserName;
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()
