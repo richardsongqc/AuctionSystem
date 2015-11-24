@@ -218,6 +218,23 @@ void CAuctionServerDoc::Dump(CDumpContext& dc) const
 
 
 // CAuctionServerDoc commands
+void CAuctionServerDoc::BroadcastPacket(CClientSocket * pSocket, CBroadcastPrice buf)
+{
+    for (CClientSocket client : m_listClient)
+    {
+        if (client.GetLogin() == false )
+        {
+            continue;
+        }
+
+        if (client.GetUserID() == pSocket->GetUserID())
+        {
+            continue;
+        }
+
+        buf.Send(&client);
+    }
+}
 
 void CAuctionServerDoc::ProcessPendingAccept()
 {
@@ -265,21 +282,73 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             }
 
             outBuf.Send(pSocket);
-            str.Format(TEXT("UserID = %s, UserName = %s"), strUserID, strUserName);
 
+            str.Format(TEXT("CMD_REGISTER_CLIENT"), strUserID, strUserName);
+            m_listMessage.Push(str);
+
+            str.Format(TEXT("\tUserID = %s, UserName = %s"), strUserID, strUserName);
             m_listMessage.Push(str);
         }
         break;
     case CMD_RETRIEVE_STOCK_OF_CLIENT:
         {
+            CInRetrieveStock* inBuf = (CInRetrieveStock*)&buffer;
+            CString strUserID = inBuf->GetUserID();
+
+            std::vector<CProduct> & listProduct = GetListProduct(strUserID);
+
+            COutRetrieveStock outBuf;
+            outBuf.SetListProduct(listProduct);
+
+            str.Format(TEXT("CMD_RETRIEVE_STOCK_OF_CLIENT") );
+            m_listMessage.Push(str);
+
+            for (CProduct product : listProduct)
+            {
+                str.Format(TEXT(">>>ProductID = %d, ProductCount = %d,Price = %f, Product Name = %s"),
+                    product.GetProductID(),
+                    product.GetCount(),
+                    product.GetPrice(),
+                    product.GetName());
+                m_listMessage.Push(str);
+            }
+
+            outBuf.Send(pSocket);
         }
         break;
     case CMD_ADVERTISING:
         {
+            CInAdvertising* inBuf = (CInAdvertising*)&buffer;
+            DWORD    dwProductID  = inBuf->GetProductID();
+            CString  strName      = inBuf->GetProductName();
+            DWORD    dwCount      = inBuf->GetProductCount();
+            double   dblPrice     = inBuf->GetProductPrice();
+
+            CBroadcastPrice buf;
+            buf.SetProductID(dwProductID);
+            buf.SetProductCount(dwCount);
+            buf.SetProductPrice(dblPrice);
+            buf.SetProductName(strName);
+            BroadcastPacket(pSocket, buf);
+
+            COutAdvertising outBuf;
+            outBuf.SetState(true);
+
+            outBuf.Send(pSocket);
         }
         break;
     case CMD_BID:
         {
+            CInAuction* inBuf = (CInAuction*)&buffer;
+            DWORD    m_dwProductID = inBuf->GetProductID();
+            CString  m_strName = inBuf->GetProductName();
+            DWORD    m_dwCount = inBuf->GetProductCount();
+            double   m_dblPrice = inBuf->GetProductPrice();
+
+
+            COutAuction outBuf;
+
+            outBuf.Send(pSocket);
         }
         break;
     }
@@ -292,6 +361,41 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
 void CAuctionServerDoc::ProcessInQueue()
 {
 
+}
+
+DWORD CAuctionServerDoc::GetAuctionID()
+{
+    DWORD dwAuctionID = 0;
+    try
+    {
+        CString strSQL;
+        strSQL.Format(TEXT("SELECT MAX(AuctionID) AS MaxAuctionID FROM Auction;") );
+
+        m_dbConn.ExecuteSql(strSQL);
+
+        CDBVariant MaxAuctionID;
+
+        if (m_dbConn.GetRecordCount() > 0)
+        {
+            while (!m_dbConn.m_Recordset->IsEOF())
+            {
+                m_dbConn.m_Recordset->GetFieldValue(TEXT("MaxAuctionID"), MaxAuctionID);
+                dwAuctionID = MaxAuctionID.m_lVal;
+                m_dbConn.m_Recordset->MoveNext();
+            }
+        }
+    }
+    catch (CString e)
+    {
+        AfxMessageBox(e);
+    }
+    catch (CDBException* e)
+    {
+        AfxMessageBox(e->m_strError);
+        e->Delete();
+    }
+
+    return dwAuctionID;
 }
 
 bool CAuctionServerDoc::ValidateUser(
@@ -332,6 +436,51 @@ bool CAuctionServerDoc::ValidateUser(
 	}
 
 	return bRet;
+}
+
+std::vector<CProduct> CAuctionServerDoc::GetListProduct(CString strUserID)
+{
+    std::vector<CProduct> listProduct;
+
+    listProduct.clear();
+
+    try
+    {
+        CString strSQL;
+        strSQL.Format(TEXT("SELECT ProductCategory.CategoryID as CategoryID, ProductCategory.CategoryName as CategoryName, Product.Price as Price, User.Name as UserName FROM (Product INNER JOIN [User] ON Product.UserID = User.UserID) INNER JOIN ProductCategory ON Product.ProductID = ProductCategory.CategoryID  WHERE User.LoginName = '%s'"), strUserID);
+
+        m_dbConn.ExecuteSql(strSQL);
+
+        CDBVariant Name;
+
+        if (m_dbConn.GetRecordCount() > 0)
+        {
+            CDBVariant CategoryID, CategoryName, Price;
+            while (!m_dbConn.m_Recordset->IsEOF())
+            {
+                m_dbConn.m_Recordset->GetFieldValue(TEXT("CategoryID"), CategoryID);
+                m_dbConn.m_Recordset->GetFieldValue(TEXT("CategoryName"), CategoryName);
+                m_dbConn.m_Recordset->GetFieldValue(TEXT("Price"), Price);
+                
+                CProduct product(CategoryID.m_lVal, (*CategoryName.m_pstring), 1, Price.m_dblVal);
+
+                listProduct.push_back(product);
+
+                m_dbConn.m_Recordset->MoveNext();
+            }
+        }
+    }
+    catch (CString e)
+    {
+        AfxMessageBox(e);
+    }
+    catch (CDBException* e)
+    {
+        AfxMessageBox(e->m_strError);
+        e->Delete();
+    }
+
+    return listProduct;
 }
 
 CMessageQueue<CString>& CAuctionServerDoc::GetListMessage()

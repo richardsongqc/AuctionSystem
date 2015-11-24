@@ -49,8 +49,12 @@ public:
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
+    void BroadcastPacket(CClientSocket * pSocket, CBroadcastPrice buf);
+
 
 	bool ValidateUser(CString strUserID, CString strPassword, CString& strUserName);
+    std::vector<CProduct> GetListProduct(CString strUserID);
+    DWORD GetAuctionID();
 
 	//friend UINT ProcessRequestQueueThread(LPVOID pParam);
 	//friend UINT ProcessResponseQueueThread(LPVOID pParam);

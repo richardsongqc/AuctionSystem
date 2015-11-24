@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 
 class CBuffer
 {
@@ -69,11 +70,16 @@ public:
 class CProduct
 {
 public:
-    CProduct() :
-        m_dwProductID(0),
-        m_strName    (L""),
-        m_dwCount    (0),
-        m_dblPrice   (0.0)
+    CProduct(
+        DWORD    dwProductID ,
+        CString  strName     ,
+        DWORD    dwCount     ,
+        double   dblPrice
+        ) :
+        m_dwProductID(dwProductID ),
+        m_strName(strName         ),
+        m_dwCount(dwCount         ),
+        m_dblPrice(dblPrice       )
     {
 
     }
@@ -133,7 +139,7 @@ public:
         m_strName = strName;
     }
 
-    void SetCount(long lCount)
+    void SetCount(DWORD lCount)
     {
         m_dwCount = lCount;
     }
@@ -193,9 +199,9 @@ public:
     CInAdvertising& operator = (const CInAdvertising& rIn);
 
 	void SetProductID(DWORD lProductID);
-	long GetProductID();
+	DWORD GetProductID();
 	void SetProductCount( DWORD lProductCount);
-    long GetProductCount();
+    DWORD GetProductCount();
 	void SetProductPrice( double dblProductPrice);
 	double GetProductPrice();
 	void SetProductName( CString strProductName);
@@ -230,9 +236,9 @@ public:
     CInAuction& operator = (const CInAuction& rIn);
 
 	void SetProductID(DWORD lProductID);
-	long GetProductID();
+	DWORD GetProductID();
 	void SetProductCount( DWORD lProductCount);
-    long GetProductCount();
+    DWORD GetProductCount();
 	void SetProductPrice( double dblProductPrice);
 	double GetProductPrice();
 	void SetProductName( CString strProductName);
@@ -261,6 +267,38 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 
+class CBroadcastPrice : public CBuffer
+{
+public:
+    CBroadcastPrice();
+    ~CBroadcastPrice();
+
+    CBroadcastPrice(const CBroadcastPrice& rObj);
+    CBroadcastPrice& operator = (const CBroadcastPrice& rObj);
+
+    void SetProductID(DWORD lProductID);
+    DWORD GetProductID();
+    void SetProductCount(DWORD lProductCount);
+    DWORD GetProductCount();
+    void SetProductPrice(double dblProductPrice);
+    double GetProductPrice();
+    void SetProductName(CString strProductName);
+    CString GetProductName();
+
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
+class CBroadcastEnd : public CBuffer
+{
+public:
+    CBroadcastEnd();
+    ~CBroadcastEnd();
+
+    CBroadcastEnd(const CBroadcastEnd& rOut);
+    CBroadcastEnd& operator = (const CBroadcastEnd& rOut);
+
+    bool GetState();
+    void SetState(bool bState);
+};

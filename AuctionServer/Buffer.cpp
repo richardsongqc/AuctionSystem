@@ -1,6 +1,103 @@
 #include "stdafx.h"
-#include "Buffer.h"
+
+
+#include <string>
 #include <protocol.h>
+
+#pragma warning( disable : 4244)
+
+using namespace std;
+
+
+#include "Buffer.h"
+
+string toBytes(double x) 
+{
+    std::size_t size = sizeof(x);
+    string _return(size, 0);
+    char * start = reinterpret_cast<char *>(&x);
+    for (std::size_t i = 0; i<size; i++) 
+    {
+        _return[i] = *(start + i);
+    }
+    return _return;
+}
+
+double getDouble(const string & x) 
+{
+    char * p = const_cast<char*>(x.c_str());
+    double * _return = 0;
+    _return = reinterpret_cast<double*>(p);
+    return *_return;
+}
+
+
+string toBytes(DWORD x) 
+{
+    std::size_t size = sizeof(x);
+    std::size_t cnt = size;
+    string _return(size, 0);
+    while (cnt--) 
+    {
+        unsigned char byte = (unsigned char)((x >> ((size - 1 - cnt) * 8)) & 0xff);
+        _return[cnt] = byte;
+    }
+    return _return;
+}
+
+
+DWORD getDWORD(const string & x)
+{
+    DWORD _return = 0;
+    for (std::size_t i = 0; i < x.size(); ++i) 
+    {
+        _return += static_cast<unsigned char>(x[x.size() - 1 - i]) *static_cast<unsigned int>(pow(256, i));
+    }
+
+    return _return;
+}
+
+DWORD getDWORD(CString str)
+{
+    USES_CONVERSION;
+    string x( T2A(str.GetBuffer()) );
+    DWORD _return = 0;
+    for (std::size_t i = 0; i < x.size(); ++i)
+    {
+        _return += static_cast<unsigned char>(x[x.size() - 1 - i]) *static_cast<unsigned int>(pow(256, i));
+    }
+
+    return _return;
+}
+
+
+float Bytes2Float(BYTE * szBuf)
+{
+    float f;
+    memcpy(&f, szBuf, sizeof(f));
+    return f;
+}
+
+void Float2Bytes(float f, BYTE * szBuf)
+{
+    memcpy(szBuf, &f, sizeof(f));
+}
+
+DWORD Bytes2DWORD(BYTE * szBuf)
+{
+    DWORD dw;
+    memcpy(&dw, szBuf, sizeof(DWORD));
+    return dw;
+}
+
+void DWORD2Bytes(DWORD dw, BYTE * szBuf)
+{
+    memcpy(szBuf, &dw, sizeof(DWORD));
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
 
 CBuffer::CBuffer()
 {
@@ -230,16 +327,16 @@ CInRetrieveStock::CInRetrieveStock()
     SetCmd(CMD_RETRIEVE_STOCK_OF_CLIENT);
 }
 
-CInRetrieveStock::C~CInRetrieveStock()
+CInRetrieveStock::~CInRetrieveStock()
 {
 }
 
-CInRetrieveStock::CCInRetrieveStock(const CInRetrieveStock& rObj)
+CInRetrieveStock::CInRetrieveStock(const CInRetrieveStock& rObj)
 {
     memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
 }
 
-CInRetrieveStock& CInRetrieveStock::Coperator = (const CInRetrieveStock& rObj)
+CInRetrieveStock& CInRetrieveStock::operator = (const CInRetrieveStock& rObj)
 {
     memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
 
@@ -303,13 +400,112 @@ COutRetrieveStock& COutRetrieveStock::operator = (const COutRetrieveStock& rObj)
 
 std::vector<CProduct> COutRetrieveStock::GetListProduct()
 {
+    USES_CONVERSION;
+    std::vector<CProduct> listProduct;
 
+    listProduct.clear();
 
+    int nLen = GetLen();
+    int position = 2;
 
+    CHAR szBuf[sizeof(m_szBuf)] = { 0 };
+    while (nLen > 0)
+    {
+        memset(szBuf, 0, sizeof(szBuf));
+
+        // General Length for Product 
+        int nProductLen = m_szBuf[position];
+        position++;
+
+        // Product ID Len
+        int nProductIDLen = m_szBuf[position];
+        position++;
+        // Product ID
+        DWORD dwProductID = Bytes2DWORD(m_szBuf + position);
+        position += nProductIDLen;
+
+        // Product Name Len
+        int nProductNameLen = m_szBuf[position];
+        position++;
+
+        // Product Name
+        memset(szBuf, 0, sizeof(szBuf));
+        memcpy(szBuf, m_szBuf + position, nProductNameLen);
+        CString strProductName(A2T(szBuf));
+        position += nProductNameLen;
+
+        // Product Count Len
+        int nCoundLen = m_szBuf[position];
+        position++;
+
+        // Product Count
+        DWORD dwCount = Bytes2DWORD(m_szBuf + position);
+        position += nCoundLen;
+
+        // Product Price Len
+        int nPriceLen = m_szBuf[position];
+        position++;
+
+        // Product Price
+        double dblPrice = Bytes2Float(m_szBuf + position);
+        position += nPriceLen;
+
+        CProduct product(dwProductID, strProductName, dwCount, dblPrice);
+
+        listProduct.push_back(product);
+
+        nLen -= nProductLen;
+    }
+
+    return listProduct;
 }
 
 void COutRetrieveStock::SetListProduct(std::vector<CProduct> listProduct)
 {
+    USES_CONVERSION;
+
+    int nTotalSize = 0;
+    int position = 2;
+
+    CHAR szBuf[sizeof(m_szBuf)] = { 0 };
+
+    for (CProduct product : listProduct)
+    {
+        memset(szBuf, 0, sizeof(szBuf));
+
+        int nProductSize = sizeof(DWORD)*2 + sizeof(double) + product.GetName().GetLength();
+        nProductSize += 4;
+
+        m_szBuf[position] = (byte)nProductSize;
+        position++;
+
+        m_szBuf[position] = sizeof(DWORD);
+        position++;
+        DWORD2Bytes(product.GetProductID(), m_szBuf + position);
+        position += sizeof(DWORD);
+
+        int nProductNameLen = product.GetName().GetLength();
+        m_szBuf[position]=(byte)nProductNameLen;
+        position++;
+        CString strName = product.GetName();
+        memcpy(szBuf + position, T2A(strName), nProductNameLen);
+        position += nProductNameLen;
+
+        m_szBuf[position] = sizeof(DWORD);
+        position++;
+        DWORD2Bytes(product.GetCount(), m_szBuf + position);
+        position += sizeof(DWORD);
+
+        m_szBuf[position] = sizeof(double);
+        position++;
+        Float2Bytes(product.GetPrice(), m_szBuf + position);
+        position += sizeof(double);
+
+
+        nTotalSize += nProductSize;
+    }
+
+    SetLen((byte)nTotalSize);
 }
 
 /////////////////////////////////////////////////////////////////////////////// 
@@ -335,43 +531,76 @@ CInAdvertising& CInAdvertising::operator = (const CInAdvertising& rObj)
     return *this;
 }
 
-void CInAdvertising::SetProductID(DWORD lProductID)
+void CInAdvertising::SetProductID(DWORD dwProductID)
 {
+    int position = 2;
+    m_szBuf[position] = sizeof(DWORD);
+    position++;
+
+    DWORD2Bytes(dwProductID, m_szBuf + position);
+
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] +4);
 }
 
-long CInAdvertising::GetProductID()
+DWORD CInAdvertising::GetProductID()
 {
-
+    int nProductIDLen = m_szBuf[2];
+    return Bytes2DWORD(m_szBuf + 3);
 }
 
-void CInAdvertising::SetProductCount( DWORD lProductCount)
+void CInAdvertising::SetProductCount( DWORD dwProductCount)
 {
+    int position = 3 + sizeof(DWORD);
+    m_szBuf[position] = sizeof(DWORD);
+    position++;
+    DWORD2Bytes(dwProductCount, m_szBuf + position);
 
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] + 4);
 }
 
-long CInAdvertising::GetProductCount()
+DWORD CInAdvertising::GetProductCount()
 {
+    int position = 3 + sizeof(DWORD);
+    int nProductIDLen = m_szBuf[position++];
 
+    return Bytes2DWORD(m_szBuf + position);
 }
 
 void CInAdvertising::SetProductPrice( double dblProductPrice)
 {
+    int position = 4 + sizeof(DWORD)*2;
+    m_szBuf[position++] = sizeof(double);
+    Float2Bytes(dblProductPrice, m_szBuf + position);
 
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] + 4);
 }
 
 double CInAdvertising::GetProductPrice()
 {
-
+    int position = 4 + sizeof(DWORD) * 2;
+    int PriceLen = m_szBuf[position++];
+    
+    return Bytes2Float(m_szBuf + position);
 }
 
 void CInAdvertising::SetProductName( CString strProductName)
 {
+    USES_CONVERSION;
+    int position = 5 + sizeof(DWORD) * 2 + sizeof(double);
 
+    int nProductNameLen = strProductName.GetLength();
+    m_szBuf[position++] = nProductNameLen;
+    memcpy(m_szBuf + position, T2A(strProductName), nProductNameLen );
+
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen + 4);
 }
 
 CString CInAdvertising::GetProductName()
 {
-
+    USES_CONVERSION;
+    int position = 5 + sizeof(DWORD) * 2 + sizeof(double);
+    CString str(A2T((char*)m_szBuf + position));
+    return str;
 }
 
 /////////////////////////////////////////////////////////////////////////////// 
@@ -399,11 +628,14 @@ COutAdvertising& COutAdvertising::operator = (const COutAdvertising& rObj)
 
 bool COutAdvertising::GetState()
 {
-
+    return m_szBuf[3] ? true : false;
 }
 
 void COutAdvertising::SetState(bool bState)
 {
+    m_szBuf[3] = bState ? 1 : 0;
+    m_szBuf[2] = 1;
+    m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
 }
 
 /////////////////////////////////////////////////////////////////////////////// 
@@ -431,36 +663,75 @@ CInAuction& CInAuction::operator = (const CInAuction& rObj)
 }
 
 
-void CInAuction::SetProductID(DWORD lProductID)
+void CInAuction::SetProductID(DWORD dwProductID)
 {
+    int position = 2;
+    m_szBuf[position] = sizeof(DWORD);
+    position++;
+    DWORD2Bytes(dwProductID, m_szBuf + position);
+
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] + 4);
 }
 
-long CInAuction::GetProductID()
+DWORD CInAuction::GetProductID()
 {
+    int nProductIDLen = m_szBuf[2];
+    return Bytes2DWORD(m_szBuf + 3);
 }
 
-void CInAuction::SetProductCount( DWORD lProductCount)
+void CInAuction::SetProductCount( DWORD dwProductCount)
 {
+    int position = 3 + sizeof(DWORD);
+    m_szBuf[position] = sizeof(DWORD);
+    position++;
+    DWORD2Bytes(dwProductCount, m_szBuf + position);
+
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] + 4);
 }
 
-long CInAuction::GetProductCount()
+DWORD CInAuction::GetProductCount()
 {
+    int position = 3 + sizeof(DWORD);
+    int nProductIDLen = m_szBuf[position++];
+
+    return Bytes2DWORD(m_szBuf + position);
 }
 
 void CInAuction::SetProductPrice( double dblProductPrice)
 {
+    int position = 4 + sizeof(DWORD) * 2;
+    m_szBuf[position++] = sizeof(double);
+    Float2Bytes(dblProductPrice, m_szBuf + position);
+
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] + 4);
 }
 
 double CInAuction::GetProductPrice()
 {
+    int position = 4 + sizeof(DWORD) * 2;
+    int PriceLen = m_szBuf[position++];
+
+    return Bytes2Float(m_szBuf + position);
 }
 
 void CInAuction::SetProductName( CString strProductName)
 {
+    USES_CONVERSION;
+    int position = 5 + sizeof(DWORD) * 2 + sizeof(double);
+
+    int nProductNameLen = strProductName.GetLength();
+    m_szBuf[position++] = nProductNameLen;
+    memcpy(m_szBuf + position, T2A(strProductName), nProductNameLen);
+
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen + 4 );
 }
 
 CString CInAuction::GetProductName()
 {
+    USES_CONVERSION;
+    int position = 5 + sizeof(DWORD) * 2 + sizeof(double);
+    CString str(A2T((char*)m_szBuf + position));
+    return str;
 }
      
 /////////////////////////////////////////////////////////////////////////////// 
@@ -488,28 +759,167 @@ COutAuction& COutAuction::operator = (const COutAuction& rObj)
 
 bool COutAuction::GetState()
 {
-
+    return m_szBuf[3] ? true : false;
 }
 
 void COutAuction::SetState(bool bState)
 {
+    m_szBuf[3] = bState ? 1 : 0;
+    m_szBuf[2] = 1;
+    m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
 
+    SetLen(3 + sizeof(double));
 }
 
 void COutAuction::SetMaxBidPrice( double dblMaxBidPrice)
 {
+    int position = 4 ;
+    m_szBuf[position++] = sizeof(double);
+    Float2Bytes(dblMaxBidPrice, m_szBuf + position);
 
+    SetLen(3 + sizeof(double));
 }
 
 double COutAuction::GetMaxBidPrice()
 {
+    int position = 4 ;
+    int PriceLen = m_szBuf[position++];
 
+    return Bytes2Float(m_szBuf + position);
 }
      
 /////////////////////////////////////////////////////////////////////////////// 
- 
 /////////////////////////////////////////////////////////////////////////////// 
- 
+
+CBroadcastPrice::CBroadcastPrice()
+{
+    SetCmd(CMD_BROADCAST_PRICE);
+}
+
+CBroadcastPrice::~CBroadcastPrice()
+{
+}
+
+
+CBroadcastPrice::CBroadcastPrice(const CBroadcastPrice& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+}
+
+CBroadcastPrice& CBroadcastPrice::operator = (const CBroadcastPrice& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+
+    return *this;
+}
+
+
+void CBroadcastPrice::SetProductID(DWORD dwProductID)
+{
+    int position = 2;
+    m_szBuf[position] = sizeof(DWORD);
+    position++;
+    DWORD2Bytes(dwProductID, m_szBuf + position);
+
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] + 4);
+}
+
+DWORD CBroadcastPrice::GetProductID()
+{
+    int nProductIDLen = m_szBuf[2];
+    return Bytes2DWORD(m_szBuf + 3);
+}
+
+void CBroadcastPrice::SetProductCount(DWORD dwProductCount)
+{
+    int position = 3 + sizeof(DWORD);
+    m_szBuf[position] = sizeof(DWORD);
+    position++;
+    DWORD2Bytes(dwProductCount, m_szBuf + position);
+
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] + 4);
+}
+
+DWORD CBroadcastPrice::GetProductCount()
+{
+    int position = 3 + sizeof(DWORD);
+    int nProductIDLen = m_szBuf[position++];
+
+    return Bytes2DWORD(m_szBuf + position);
+}
+
+void CBroadcastPrice::SetProductPrice(double dblProductPrice)
+{
+    int position = 4 + sizeof(DWORD) * 2;
+    m_szBuf[position++] = sizeof(double);
+    Float2Bytes(dblProductPrice, m_szBuf + position);
+
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] + 4);
+}
+
+double CBroadcastPrice::GetProductPrice()
+{
+    int position = 4 + sizeof(DWORD) * 2;
+    int PriceLen = m_szBuf[position++];
+
+    return Bytes2Float(m_szBuf + position);
+}
+
+void CBroadcastPrice::SetProductName(CString strProductName)
+{
+    USES_CONVERSION;
+    int position = 5 + sizeof(DWORD) * 2 + sizeof(double);
+
+    int nProductNameLen = strProductName.GetLength();
+    m_szBuf[position++] = nProductNameLen;
+    memcpy(m_szBuf + position, T2A(strProductName), nProductNameLen);
+
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen + 4);
+}
+
+CString CBroadcastPrice::GetProductName()
+{
+    USES_CONVERSION;
+    int position = 5 + sizeof(DWORD) * 2 + sizeof(double);
+    CString str(A2T((char*)m_szBuf + position));
+    return str;
+}
+
+/////////////////////////////////////////////////////////////////////////////// 
+
+CBroadcastEnd::CBroadcastEnd()
+{
+    SetCmd(CMD_BROADCAST_AUCTION_END);
+}
+
+CBroadcastEnd::~CBroadcastEnd()
+{
+
+}
+
+CBroadcastEnd::CBroadcastEnd(const CBroadcastEnd& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+}
+
+CBroadcastEnd& CBroadcastEnd::operator = (const CBroadcastEnd& rObj)
+{
+    memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
+    return *this;
+}
+
+bool CBroadcastEnd::GetState()
+{
+    return m_szBuf[3] ? true : false;
+}
+
+void CBroadcastEnd::SetState(bool bState)
+{
+    m_szBuf[3] = bState ? 1 : 0;
+    m_szBuf[2] = 1;
+    m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
+}
+
 /////////////////////////////////////////////////////////////////////////////// 
  
 /////////////////////////////////////////////////////////////////////////////// 
