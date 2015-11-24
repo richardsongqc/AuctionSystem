@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "ClassDBConnection.h"
+#pragma warning( disable : 4800)
 
 //// This line of code is borrowed from Dbcore.cpp
 //static const TCHAR szODBC[] = _T("ODBC;");
