@@ -7,6 +7,7 @@
 #include "resource.h"
 #include "LogonDlg.h"
 #include "afxwin.h"
+#include "afxcmn.h"
 
 class CAuctionClientView : public CFormView
 {
@@ -50,6 +51,9 @@ public:
     virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
     CStatic m_lblUserID;
     CStatic m_lblUserName;
+    afx_msg void OnEditRetrieveStock();
+    afx_msg void OnUpdateEditRetrieveStock(CCmdUI *pCmdUI);
+    CListCtrl m_listStock;
 };
 
 #ifndef _DEBUG  // debug version in AuctionClientView.cpp

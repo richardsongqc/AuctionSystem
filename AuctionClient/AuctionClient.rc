@@ -124,6 +124,7 @@ BEGIN
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
         MENUITEM "Login",                       ID_EDIT_LOGIN
+        MENUITEM "Retrieve Stock",              ID_EDIT_RETRIEVE_STOCK
     END
     POPUP "&View"
     BEGIN
@@ -181,10 +182,11 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "User ID",IDC_STATIC,18,18,36,11
-    GROUPBOX        "User Profile",IDC_STATIC,6,6,156,54
+    GROUPBOX        "User Profile",IDC_STATIC,6,6,186,222
     LTEXT           "User Name",IDC_STATIC,18,36,36,11
-    LTEXT           "",IDC_STATIC_USER_ID,60,18,90,8
-    LTEXT           "",IDC_STATIC_USER_NAME,60,36,90,8
+    LTEXT           "",IDC_STATIC_USER_ID,60,18,126,8
+    LTEXT           "",IDC_STATIC_USER_NAME,60,36,126,8
+    CONTROL         "",IDC_LIST_STOCK,"SysListView32",LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,12,54,174,162
 END
 
 IDD_LOGONDLG DIALOGEX 0, 0, 195, 93

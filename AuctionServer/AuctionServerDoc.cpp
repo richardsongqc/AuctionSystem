@@ -34,6 +34,8 @@ CAuctionServerDoc * GetCurrentDoc()
 	return pDoc;
 }
 
+DWORD CAuctionServerDoc::m_dwAuctionID = 0;
+
 // CAuctionServerDoc
 
 IMPLEMENT_DYNCREATE(CAuctionServerDoc, CDocument)
@@ -329,26 +331,44 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             buf.SetProductCount(dwCount);
             buf.SetProductPrice(dblPrice);
             buf.SetProductName(strName);
+            
+            // Broadcast this packet to the other clients
             BroadcastPacket(pSocket, buf);
 
             COutAdvertising outBuf;
             outBuf.SetState(true);
 
             outBuf.Send(pSocket);
+
+            // *****************************************************************************
+            // After 5 minutes, the Auction should be started and the bids will be allowed.
+
+
+
+
+
+
+            //******************************************************************************
         }
         break;
     case CMD_BID:
         {
             CInAuction* inBuf = (CInAuction*)&buffer;
-            DWORD    m_dwProductID = inBuf->GetProductID();
-            CString  m_strName = inBuf->GetProductName();
-            DWORD    m_dwCount = inBuf->GetProductCount();
             double   m_dblPrice = inBuf->GetProductPrice();
 
+            // Check the max bid price
+            double dblBidPrice = inBuf->GetProductPrice();
+            //double dblMaxBidPrice = GetDBConn().GetMaxBidPrice(m_lAuctionID);
 
             COutAuction outBuf;
 
+
             outBuf.Send(pSocket);
+
+            //*********************************************************
+            //如果这个最高价格保持5分钟，这个拍卖就可以结束了。
+            //实现起来，我们还需要一个线程去检查在这5分钟里，有没有新价格高于它。
+            //*********************************************************
         }
         break;
     }

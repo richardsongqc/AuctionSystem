@@ -69,6 +69,7 @@ public:
     void            SetUserName(CString strUserName);
     CString         GetUserName();
 
+    bool            GetAuctionFlag();
 protected:
 	CClientSocket* m_pSocket;
 
@@ -84,6 +85,8 @@ protected:
     CString         m_strUserID;
     CString         m_strUserPassword;
     CString         m_strUserName;
+    
+    bool            m_bAuctionStart;
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()

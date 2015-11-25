@@ -467,12 +467,10 @@ void COutRetrieveStock::SetListProduct(std::vector<CProduct> listProduct)
     int nTotalSize = 0;
     int position = 2;
 
-    CHAR szBuf[sizeof(m_szBuf)] = { 0 };
-
+    int nLenDWORD = sizeof(DWORD);
+    int nLenDouble = sizeof(double);
     for (CProduct product : listProduct)
     {
-        memset(szBuf, 0, sizeof(szBuf));
-
         int nProductSize = sizeof(DWORD)*2 + sizeof(double) + product.GetName().GetLength();
         nProductSize += 4;
 
@@ -488,7 +486,7 @@ void COutRetrieveStock::SetListProduct(std::vector<CProduct> listProduct)
         m_szBuf[position]=(byte)nProductNameLen;
         position++;
         CString strName = product.GetName();
-        memcpy(szBuf + position, T2A(strName), nProductNameLen);
+        memcpy(m_szBuf + position, T2A(strName), nProductNameLen);
         position += nProductNameLen;
 
         m_szBuf[position] = sizeof(DWORD);

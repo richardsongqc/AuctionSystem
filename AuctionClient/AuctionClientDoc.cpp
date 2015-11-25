@@ -192,6 +192,7 @@ int CAuctionClientDoc::SendRequest(CBuffer inBuf, CBuffer& outBuf)
             int nLen = outBuf.Receive(m_pSocket);
             if (nLen > 0)
             {
+
                 break;
             }
         }
@@ -202,7 +203,10 @@ int CAuctionClientDoc::SendRequest(CBuffer inBuf, CBuffer& outBuf)
  
     }
 
-	return 0;
+
+    ResetEvent(m_hEvtReceive);
+	
+    return 0;
 }
 
 void CAuctionClientDoc::SetValid(bool bValid)

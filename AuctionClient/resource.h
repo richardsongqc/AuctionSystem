@@ -13,15 +13,19 @@
 #define IDC_EDIT_PASSWORD               1001
 #define IDC_STATIC_USER_NAME            1001
 #define IDC_STATIC_USER_ID              1002
+#define IDC_LIST1                       1003
+#define IDC_LIST_STOCK                  1003
 #define ID_EDIT_LOGIN                   32771
+#define ID_Menu                         32772
+#define ID_EDIT_RETRIEVE_STOCK          32773
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        310
-#define _APS_NEXT_COMMAND_VALUE         32772
-#define _APS_NEXT_CONTROL_VALUE         1003
+#define _APS_NEXT_COMMAND_VALUE         32774
+#define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           311
 #endif
 #endif

@@ -76,6 +76,7 @@ protected:
 	void UpdateAllView();
 // Generated message map functions
 protected:
+    static DWORD    m_dwAuctionID;
 
     bool CheckLogin(CString strUserID);
 
