@@ -102,15 +102,15 @@ void CAuctionClientView::OnInitialUpdate()
         LVS_SHOWSELALWAYS |
         LVS_NOLABELWRAP |
         LVS_AUTOARRANGE |
-        LVS_EDITLABELS |
+        LVS_NOSCROLL ||
         LVS_ALIGNLEFT |
         LVS_NOSORTHEADER);
     m_listStock.SetExtendedStyle(dwExStyle);
 
-    m_listStock.InsertColumn(1, L"ID", LVCF_TEXT | LVCF_IMAGE | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 0.1));
-    m_listStock.InsertColumn(2, L"Name", LVCF_TEXT | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 0.1));
-    m_listStock.InsertColumn(3, L"Count", LVCF_TEXT | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 0.1));
-    m_listStock.InsertColumn(4, L"Count", LVCF_TEXT | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 0.1));
+    m_listStock.InsertColumn(1, L"ID", LVCF_TEXT | LVCF_IMAGE | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 0.05));
+    m_listStock.InsertColumn(2, L"Name", LVCF_TEXT | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 0.13));
+    m_listStock.InsertColumn(3, L"Count", LVCF_TEXT | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 0.08));
+    m_listStock.InsertColumn(4, L"Count", LVCF_TEXT | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 0.18));
 
 
 
@@ -158,15 +158,64 @@ void CAuctionClientView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject*
     // TODO: Add your specialized code here and/or call the base class
     CAuctionClientDoc * pDoc = GetDocument();
 
-    bool bValid = pDoc->GetValid();
+    if (m_pLogonDlg == NULL )
+    {
+        return;
+    }
+
+    CString str;
+    if (m_pLogonDlg->IsWindowVisible() == TRUE)
+    {
+        if (pDoc->GetValid())
+        {
+            if (pDoc->GetLogin() == false)
+            {
+                m_pLogonDlg->ShowWindow(SW_HIDE);
+            }
+
+            //str = L"This user has already be logined. Please input again.";
+        }
+        else
+        {
+            str = L"User name and password are incorrect. Please input again.";
+            AfxMessageBox(str);
+        }
+
+        
+    }
+
     
-    if (bValid && pDoc->GetLogin()==false)
+    
+    if (pDoc->GetValid() && pDoc->GetLogin() == false)
     {
         CString strUserID = pDoc->GetUserID();
         CString strUserName = pDoc->GetUserName();
         
         m_lblUserID.SetWindowText(strUserID);
         m_lblUserName.SetWindowText(strUserName);
+
+        m_listStock.DeleteAllItems();
+
+        std::vector<CProduct>& listProduct = pDoc->GetListProduct();
+
+        int i = 0;
+        for (CProduct product : listProduct)
+        {
+            CString str;
+            str.Format(L"%d", product.GetProductID());
+            m_listStock.InsertItem(i, str);
+
+            str.Format(L"%s", product.GetName());
+            m_listStock.SetItemText(i, 1, str);
+
+            str.Format(L"%d", product.GetCount());
+            m_listStock.SetItemText(i, 2, str);
+
+            str.Format(L"%f", product.GetPrice());
+            m_listStock.SetItemText(i, 3, str);
+
+            i++;
+        }
     }
 }
 
@@ -180,32 +229,9 @@ void CAuctionClientView::OnEditRetrieveStock()
 
     inBuf.SetUserID(pDoc->GetUserID());
 
-    COutRetrieveStock outBuf;
+    pDoc->SendBuffer(inBuf);
 
-    pDoc->SendRequest(inBuf, outBuf);
 
-    m_listStock.DeleteAllItems();
-
-    std::vector<CProduct>& listProduct = outBuf.GetListProduct();
-
-    int i = 0;
-    for (CProduct product : listProduct)
-    {
-        CString str;
-        str.Format(L"%d", product.GetProductID());
-        m_listStock.InsertItem(i, str);
-
-        str.Format(L"%s", product.GetName());
-        m_listStock.SetItemText(i, 1, str);
-
-        str.Format(L"%d", product.GetCount());
-        m_listStock.SetItemText(i, 2, str);
-
-        str.Format(L"%f", product.GetPrice());
-        m_listStock.SetItemText(i, 2, str);
-
-        i++;
-    }
 
 
 

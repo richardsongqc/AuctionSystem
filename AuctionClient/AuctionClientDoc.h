@@ -51,6 +51,7 @@ public:
     //friend UINT ProcessResponseQueueThread(LPVOID pParam);
 
 	int SendRequest(CBuffer inBuf, CBuffer& outBuf);
+    int SendBuffer(CBuffer inBuf);
 
     CMessageQueue<CString>& GetListMessage();
 
@@ -70,10 +71,15 @@ public:
     CString         GetUserName();
 
     bool            GetAuctionFlag();
+
+    std::vector<CProduct>   GetListProduct();
+    
 protected:
 	CClientSocket* m_pSocket;
 
     CMessageQueue<CString>	m_listMessage;
+
+    std::vector<CProduct>    m_listProduct;
 
     //CWinThread	*	m_pThreadProcessRequestQueue;
     //CWinThread	*	m_pThreadProcessResponseQueue;

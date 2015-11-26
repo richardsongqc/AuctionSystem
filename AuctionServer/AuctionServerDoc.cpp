@@ -285,7 +285,7 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
 
             outBuf.Send(pSocket);
 
-            str.Format(TEXT("CMD_REGISTER_CLIENT"), strUserID, strUserName);
+            str.Format(TEXT("CMD_REGISTER_CLIENT") );
             m_listMessage.Push(str);
 
             str.Format(TEXT("\tUserID = %s, UserName = %s"), strUserID, strUserName);

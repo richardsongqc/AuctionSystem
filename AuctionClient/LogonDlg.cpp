@@ -69,31 +69,12 @@ void CLogonDlg::OnBnClickedOk()
 	inBuf.SetUserID(strUserID);
 	inBuf.SetUserPassword(strUserPassword);
         
-	COutRegisterClient outBuf;
-	pDoc->SendRequest(inBuf, outBuf);
+    pDoc->SendBuffer(inBuf);
 
-	bool bValid = outBuf.GetState();
-    pDoc->SetValid(bValid);
-    pDoc->SetLogin(outBuf.GetLogin());
-	if (bValid)
-	{
-		pDoc->SetUserName( outBuf.GetUserName() );
+	//COutRegisterClient outBuf;
+	//pDoc->SendRequest(inBuf, outBuf);
 
-        if (outBuf.GetLogin()== false)
-        {
-            CDialog::OnOK();
-            pDoc->UpdateAllViews(NULL);
-            return;
-        }
 
-        str = L"This user has already be logined. Please input again.";
-	}
-    else
-    {
-        str = L"User name and password are incorrect. Please input again.";
-    }
-    
-    AfxMessageBox(str);
 	
 }
 

@@ -56,6 +56,8 @@ CAuctionClientDoc::CAuctionClientDoc()
     //    this);
 
     m_hEvtReceive = CreateEvent(NULL, FALSE, TRUE, NULL);
+
+    //ResetEvent(m_hEvtReceive);
 }
 
 CAuctionClientDoc::~CAuctionClientDoc()
@@ -179,6 +181,10 @@ CClientSocket* CAuctionClientDoc::GetSocket()
 	return m_pSocket;
 }
 
+int CAuctionClientDoc::SendBuffer(CBuffer inBuf)
+{
+    return inBuf.Send(m_pSocket);
+}
 
 int CAuctionClientDoc::SendRequest(CBuffer inBuf, CBuffer& outBuf)
 {
@@ -204,7 +210,7 @@ int CAuctionClientDoc::SendRequest(CBuffer inBuf, CBuffer& outBuf)
     }
 
 
-    ResetEvent(m_hEvtReceive);
+    //ResetEvent(m_hEvtReceive);
 	
     return 0;
 }
@@ -296,25 +302,61 @@ BOOL CAuctionClientDoc::ConnectSocket(CString strAddress, UINT nPort)
 
 void CAuctionClientDoc::ProcessPendingRead()
 {
-	//do
-	//{
-	//	ReceiveMsg();
-	//	if (m_pSocket == NULL)
-	//		return;
-	//} 
-	//while (!m_pArchiveIn->IsBufferEmpty());
-    SetEvent(m_hEvtReceive);
-
     CBuffer     bufOutput;
     int         nReceived = bufOutput.Receive(m_pSocket);
 
+    switch (bufOutput.GetCmd())
+    {
+    case RSP_REGISTER_CLIENT:
+        {
+            COutRegisterClient* outBuf = (COutRegisterClient*)&bufOutput;
+            SetValid(outBuf->GetState());
+            SetUserName(outBuf->GetUserName());
+            SetLogin(outBuf->GetLogin());
 
-    msgResponseQueue.Push(bufOutput);
+        }
+        break;
+    case RSP_RETRIEVE_STOCK_OF_CLIENT : 
+        {
+            COutRetrieveStock * outBuf = (COutRetrieveStock*)&bufOutput;
+            m_listProduct = outBuf->GetListProduct();
+        }
+        break;
+    case RSP_ADVERTISING              : 
+        {
+
+        }
+        break;
+    case RSP_BID                      : 
+        {
+
+        }
+        break;
+    case CMD_BROADCAST_PRICE          : 
+        {
+
+        }
+        break;
+    case CMD_BROADCAST_AUCTION_END    : 
+        {
+
+        }
+        break;
+    }
+
+    UpdateAllViews(NULL);
+
+    //msgResponseQueue.Push(bufOutput);
 }
 
 CMessageQueue<CString>& CAuctionClientDoc::GetListMessage()
 {
     return m_listMessage;
+}
+
+std::vector<CProduct> CAuctionClientDoc::GetListProduct()
+{
+    return m_listProduct;
 }
 
 void CAuctionClientDoc::ReceiveMsg()
