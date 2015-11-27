@@ -44,7 +44,7 @@ END_MESSAGE_MAP()
 
 // CAuctionClientDoc construction/destruction
 
-CAuctionClientDoc::CAuctionClientDoc()
+CAuctionClientDoc::CAuctionClientDoc() : m_eAuctionState(E_NONE)
 {
 	// TODO: add one-time construction code here
     //m_pThreadProcessRequestQueue = AfxBeginThread(
@@ -300,6 +300,16 @@ BOOL CAuctionClientDoc::ConnectSocket(CString strAddress, UINT nPort)
 	return TRUE;
 }
 
+EAuctionState CAuctionClientDoc::GetAuctionState()
+{
+    return m_eAuctionState;
+}
+
+void CAuctionClientDoc::SetAuctionState(EAuctionState eAuctionState)
+{
+    m_eAuctionState = eAuctionState;
+}
+
 void CAuctionClientDoc::ProcessPendingRead()
 {
     CBuffer     bufOutput;
@@ -314,32 +324,39 @@ void CAuctionClientDoc::ProcessPendingRead()
             SetUserName(outBuf->GetUserName());
             SetLogin(outBuf->GetLogin());
 
+            m_eAuctionState = E_NONE;
         }
         break;
     case RSP_RETRIEVE_STOCK_OF_CLIENT : 
         {
             COutRetrieveStock * outBuf = (COutRetrieveStock*)&bufOutput;
             m_listProduct = outBuf->GetListProduct();
+
+            m_eAuctionState = E_NONE;
         }
         break;
     case RSP_ADVERTISING              : 
         {
+            m_eAuctionState = E_ADVERTISING;
+
+
+
 
         }
         break;
     case RSP_BID                      : 
         {
-
+            m_eAuctionState = E_AUCTION;
         }
         break;
     case CMD_BROADCAST_PRICE          : 
         {
-
+            m_eAuctionState = E_AUCTION;
         }
         break;
     case CMD_BROADCAST_AUCTION_END    : 
         {
-
+            m_eAuctionState = E_NONE;
         }
         break;
     }

@@ -25,6 +25,8 @@ BEGIN_MESSAGE_MAP(CAuctionClientView, CFormView)
     ON_COMMAND(ID_EDIT_LOGIN, &CAuctionClientView::OnEditLogin)
     ON_COMMAND(ID_EDIT_RETRIEVE_STOCK, &CAuctionClientView::OnEditRetrieveStock)
     ON_UPDATE_COMMAND_UI(ID_EDIT_RETRIEVE_STOCK, &CAuctionClientView::OnUpdateEditRetrieveStock)
+    ON_BN_CLICKED(IDC_BUTTON_ADVERTISING, &CAuctionClientView::OnBnClickedButtonAdvertising)
+    ON_BN_CLICKED(IDC_BUTTON_PLACE_BID, &CAuctionClientView::OnBnClickedButtonPlaceBid)
 END_MESSAGE_MAP()
 
 // CAuctionClientView construction/destruction
@@ -53,6 +55,12 @@ void CAuctionClientView::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC_USER_ID, m_lblUserID);
     DDX_Control(pDX, IDC_STATIC_USER_NAME, m_lblUserName);
     DDX_Control(pDX, IDC_LIST_STOCK, m_listStock);
+    DDX_Control(pDX, IDC_BUTTON_ADVERTISING, m_btnAdvertise);
+    DDX_Control(pDX, IDC_EDIT_PLACE_BID, m_edtBid);
+    DDX_Control(pDX, IDC_BUTTON_PLACE_BID, m_btnBid);
+    DDX_Control(pDX, IDC_STATIC_CURRENT_BID, m_lblCurrentBid);
+    DDX_Control(pDX, IDC_STATIC_BID_COUNT, m_edtBidCount);
+    DDX_Control(pDX, IDC_STATIC_BID_NAME, m_edtBidName);
 }
 
 BOOL CAuctionClientView::PreCreateWindow(CREATESTRUCT& cs)
@@ -112,7 +120,7 @@ void CAuctionClientView::OnInitialUpdate()
     m_listStock.InsertColumn(3, L"Count", LVCF_TEXT | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 0.08));
     m_listStock.InsertColumn(4, L"Count", LVCF_TEXT | LVCFMT_FIXED_WIDTH, (int)(rcClient.Width() * 0.18));
 
-
+    UpdateMode();
 
 
 
@@ -217,6 +225,9 @@ void CAuctionClientView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject*
             i++;
         }
     }
+
+
+    UpdateMode();
 }
 
 
@@ -242,4 +253,81 @@ void CAuctionClientView::OnEditRetrieveStock()
 void CAuctionClientView::OnUpdateEditRetrieveStock(CCmdUI *pCmdUI)
 {
     // TODO: Add your command update UI handler code here
+}
+
+
+void CAuctionClientView::OnBnClickedButtonAdvertising()
+{
+    // TODO: Add your control notification handler code here
+    int nSelection = 0;
+    
+    m_listStock.GetSelectionMark();
+    nSelection = m_listStock.GetNextItem(-1, LVIS_SELECTED);
+
+    CString str;
+    str.Format(L"Selection = %d", nSelection);
+
+    AfxMessageBox(str);
+
+}
+
+
+//void CAuctionClientView::OnBnClickedButton2()
+//{
+//    // TODO: Add your control notification handler code here
+//}
+
+
+void CAuctionClientView::OnBnClickedButtonPlaceBid()
+{
+    // TODO: Add your control notification handler code here
+}
+
+
+void CAuctionClientView::UpdateMode()
+{
+    CAuctionClientDoc * pDoc = GetDocument();
+
+    EAuctionState eState = pDoc->GetAuctionState();
+
+    switch (eState)
+    {
+    case E_NONE        : 
+        {
+            m_listStock.EnableWindow(TRUE);
+            m_btnAdvertise.EnableWindow(TRUE);
+
+            m_edtBid.EnableWindow(FALSE);
+            m_edtBidCount.EnableWindow(FALSE);
+            m_edtBidName.EnableWindow(FALSE);
+            m_btnBid.EnableWindow(FALSE);
+        }
+        break;
+    case E_ADVERTISING : 
+        {
+            m_listStock.EnableWindow(TRUE);
+            m_btnAdvertise.EnableWindow(TRUE);
+
+            m_edtBid.EnableWindow(FALSE);
+            m_edtBidCount.EnableWindow(FALSE);
+            m_edtBidName.EnableWindow(FALSE);
+            m_btnBid.EnableWindow(FALSE);
+        }
+        break;
+    case E_AUCTION     : 
+        {
+            m_listStock.EnableWindow(FALSE);
+            m_btnAdvertise.EnableWindow(FALSE);
+
+            m_edtBid.EnableWindow(TRUE);
+            m_edtBidCount.EnableWindow(TRUE);
+            m_edtBidName.EnableWindow(TRUE);
+            m_btnBid.EnableWindow(TRUE);
+
+        }
+        break;
+    }
+
+
+
 }

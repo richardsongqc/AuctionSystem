@@ -54,6 +54,16 @@ public:
     afx_msg void OnEditRetrieveStock();
     afx_msg void OnUpdateEditRetrieveStock(CCmdUI *pCmdUI);
     CListCtrl m_listStock;
+    CButton m_btnAdvertise;
+    afx_msg void OnBnClickedButtonAdvertising();
+//    afx_msg void OnBnClickedButton2();
+    afx_msg void OnBnClickedButtonPlaceBid();
+    CEdit m_edtBid;
+    CButton m_btnBid;
+    void UpdateMode();
+    CStatic m_lblCurrentBid;
+    CStatic m_edtBidCount;
+    CStatic m_edtBidName;
 };
 
 #ifndef _DEBUG  // debug version in AuctionClientView.cpp

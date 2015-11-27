@@ -16,6 +16,12 @@
 #define CMD_BROADCAST_PRICE					0xF1  
 #define CMD_BROADCAST_AUCTION_END			0xF2 
 
+typedef enum
+{
+	E_NONE 	 	  = 0,
+	E_ADVERTISING = 1,
+	E_AUCTION	  = 2,
+} EAuctionState;
 
 
 #endif //__PROTOCOL_H__

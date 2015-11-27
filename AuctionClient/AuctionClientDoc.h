@@ -6,6 +6,7 @@
 #pragma once
 #include "..\\AuctionServer\\Buffer.h"
 #include <ListMessage.h>
+#include <protocol.h>
 #include "ClientSocket.h"
 
 extern CMessageQueue<CBuffer> msgRequestQueue;
@@ -74,6 +75,9 @@ public:
 
     std::vector<CProduct>   GetListProduct();
     
+    EAuctionState            GetAuctionState();
+    void            SetAuctionState(EAuctionState bAuction);
+
 protected:
 	CClientSocket* m_pSocket;
 
@@ -86,13 +90,14 @@ protected:
 
     bool            m_bValid;
     bool            m_bLogin;
+
     HANDLE          m_hEvtReceive;
 
     CString         m_strUserID;
     CString         m_strUserPassword;
     CString         m_strUserName;
     
-    bool            m_bAuctionStart;
+    EAuctionState   m_eAuctionState;
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()
