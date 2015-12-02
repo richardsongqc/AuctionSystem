@@ -43,8 +43,9 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(solutiondir)\include;$(BOOSTDIR)\;$(ProjectDir)..\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(BOOSTDIR)\;$(ProjectDir)..\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(BOOSTDIR)\lib32-msvc-12.0;$(LibraryPath)</LibraryPath>
+    <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -110,11 +111,11 @@
     <ClInclude Include="ClassDBConnection.h" />
     <ClInclude Include="ClientSocket.h" />
     <ClInclude Include="ListeningSocket.h" />
-    <ClInclude Include="ListMessage.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="timer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AuctionServer.cpp" />
@@ -129,6 +130,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AuctionServer.rc" />

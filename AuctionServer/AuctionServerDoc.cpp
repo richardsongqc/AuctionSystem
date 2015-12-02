@@ -12,7 +12,7 @@
 #include "ClientSocket.h"
 #include "AuctionServerDoc.h"
 #include "AuctionServerView.h"
-
+#include "timer.h"
 #include <propkey.h>
 
 #ifdef _DEBUG

@@ -51,7 +51,7 @@ public:
 	T Pop()
 	{
 		m_mutex.lock();
-		T temp = m_queue.back();
+		T temp = m_queue.front();
 		m_queue.pop();
 		m_mutex.unlock();
 		return temp;

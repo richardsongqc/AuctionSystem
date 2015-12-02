@@ -338,9 +338,9 @@ void CAuctionClientDoc::ProcessPendingRead()
     case RSP_ADVERTISING              : 
         {
             m_eAuctionState = E_ADVERTISING;
-
-
-
+            
+            COutAdvertising * outBuf = (COutAdvertising*)&bufOutput;
+            outBuf->GetState();
 
         }
         break;

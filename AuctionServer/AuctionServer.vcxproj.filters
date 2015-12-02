@@ -45,9 +45,6 @@
     <ClInclude Include="Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ListMessage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ClassDBConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>

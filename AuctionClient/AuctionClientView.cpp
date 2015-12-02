@@ -11,7 +11,7 @@
 
 #include "AuctionClientDoc.h"
 #include "AuctionClientView.h"
-
+#include "..\\AuctionServer\\Buffer.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -265,10 +265,38 @@ void CAuctionClientView::OnBnClickedButtonAdvertising()
     nSelection = m_listStock.GetNextItem(-1, LVIS_SELECTED);
 
     CString str;
-    str.Format(L"Selection = %d", nSelection);
 
-    AfxMessageBox(str);
+    if (nSelection == -1)
+    {
+        str.Format(L"You forget to choose one item!", nSelection);
+        AfxMessageBox(str);
+        return ;
+    }
 
+    str = m_listStock.GetItemText(nSelection,0);
+    DWORD dwProductID = _ttol(str);
+
+    str = m_listStock.GetItemText(nSelection, 1);
+    CString strName = str;
+
+    str = m_listStock.GetItemText(nSelection, 2);
+    DWORD dwCount = _ttol(str);
+
+    str = m_listStock.GetItemText(nSelection, 3);
+    double dblPrice = _ttof(str);
+
+    //CProduct product(dwProductID, strName, dwCount, dblPrice);
+
+    CAuctionClientDoc * pDoc = GetDocument();
+
+    CInAdvertising inBuf;
+
+    inBuf.SetProductID(dwProductID);
+    inBuf.SetProductName(strName);
+    inBuf.SetProductCount(dwCount);
+    inBuf.SetProductPrice(dblPrice);
+
+    pDoc->SendBuffer(inBuf);
 }
 
 
@@ -305,13 +333,13 @@ void CAuctionClientView::UpdateMode()
         break;
     case E_ADVERTISING : 
         {
-            m_listStock.EnableWindow(TRUE);
-            m_btnAdvertise.EnableWindow(TRUE);
+            m_listStock.EnableWindow(FALSE);
+            m_btnAdvertise.EnableWindow(FALSE);
 
-            m_edtBid.EnableWindow(FALSE);
-            m_edtBidCount.EnableWindow(FALSE);
-            m_edtBidName.EnableWindow(FALSE);
-            m_btnBid.EnableWindow(FALSE);
+            m_edtBid.EnableWindow(TRUE);
+            m_edtBidCount.EnableWindow(TRUE);
+            m_edtBidName.EnableWindow(TRUE);
+            m_btnBid.EnableWindow(TRUE);
         }
         break;
     case E_AUCTION     : 
