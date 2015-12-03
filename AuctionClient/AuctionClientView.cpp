@@ -226,7 +226,26 @@ void CAuctionClientView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject*
         }
     }
 
+    switch (pDoc->GetAuctionState())
+    {
+    case E_NONE        : break;
+    case E_ADVERTISING : 
+    case E_AUCTION     : 
+        {
+            CProduct& product = pDoc->GetCurrentProduct();
 
+            str.Format(L"%s", product.GetName());
+            m_edtBidName.SetWindowText(str);
+
+            str.Format(L"%d", product.GetCount());
+            m_edtBidCount.SetWindowText(str);
+
+            str.Format(L"%f", product.GetPrice());
+            m_lblCurrentBid.SetWindowText(str);
+        }
+        break;
+    default            : break;
+    }
     UpdateMode();
 }
 

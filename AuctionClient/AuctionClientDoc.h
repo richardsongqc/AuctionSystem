@@ -76,6 +76,8 @@ public:
     std::vector<CProduct>   GetListProduct();
     
     EAuctionState            GetAuctionState();
+    CProduct                 GetCurrentProduct();
+
     void            SetAuctionState(EAuctionState bAuction);
 
 protected:
@@ -96,7 +98,8 @@ protected:
     CString         m_strUserID;
     CString         m_strUserPassword;
     CString         m_strUserName;
-    
+    CProduct        m_curProduct;
+
     EAuctionState   m_eAuctionState;
 // Generated message map functions
 protected:

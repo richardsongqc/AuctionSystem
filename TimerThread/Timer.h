@@ -21,6 +21,12 @@ public:
         m_parameter = p;
     }
 
+    void registerHandlerAfter(TimerHandler handler, void* p)
+    {
+        m_handlerAfter = handler;
+        m_paramAfter = p;
+    }
+
     void setInterval(int millisecond)
     {
         m_interval = millisecond;
@@ -30,8 +36,9 @@ public:
     {
         unsigned long tickNow = ::GetTickCount();
         unsigned long tickLastTime = tickNow;
-
-        while(!IsStop())
+        DWORD dwStartTime = tickNow;
+        long lElasped = m_dwPeriod;
+        while (!IsStop() && lElasped > 0)
         {
             tickNow = ::GetTickCount();
             if(tickNow - tickLastTime > m_interval)
@@ -43,7 +50,14 @@ public:
                 tickLastTime = ::GetTickCount();
             }
 
+            lElasped -= (tickNow - dwStartTime);
+
             ::Sleep(1);
+        }
+
+        if (m_handlerAfter)
+        {
+            (*m_handlerAfter)(m_paramAfter);
         }
     }
 
@@ -52,10 +66,17 @@ public:
         Stop();
     }
 
+    void SetPeriod(DWORD dwPeriod)
+    {
+        m_dwPeriod = dwPeriod;
+    }
 private:
     TimerHandler m_handler;
+    TimerHandler m_handlerAfter;
     int             m_interval;
     void*         m_parameter;
+    void*         m_paramAfter;
+    DWORD        m_dwPeriod;
 };
 
 #endif

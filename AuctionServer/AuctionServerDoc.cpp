@@ -46,7 +46,8 @@ END_MESSAGE_MAP()
 
 // CAuctionServerDoc construction/destruction
 
-CAuctionServerDoc::CAuctionServerDoc()
+CAuctionServerDoc::CAuctionServerDoc() : 
+    m_stateAuction(E_NONE)
 {
 	// TODO: add one-time construction code here
 	msgRequestQueue.Clean();
@@ -220,19 +221,19 @@ void CAuctionServerDoc::Dump(CDumpContext& dc) const
 
 
 // CAuctionServerDoc commands
-void CAuctionServerDoc::BroadcastPacket(CClientSocket * pSocket, CBroadcastPrice buf)
+void CAuctionServerDoc::BroadcastBuffer(CClientSocket * pSocket, CBuffer buf)
 {
     for (CClientSocket client : m_listClient)
     {
-        if (client.GetLogin() == false )
-        {
-            continue;
-        }
+        //if (client.GetLogin() == false )
+        //{
+        //    continue;
+        //}
 
-        if (client.GetUserID() == pSocket->GetUserID())
-        {
-            continue;
-        }
+        //if (client.GetUserID() == pSocket->GetUserID())
+        //{
+        //    continue;
+        //}
 
         buf.Send(&client);
     }
@@ -256,6 +257,17 @@ void CAuctionServerDoc::ProcessPendingAccept()
 	UpdateAllViews(NULL);
 }
 
+
+void WINAPI TimerProc(void* p)
+{
+
+}
+
+void WINAPI TimerAfterProc(void* p)
+{
+
+}
+
 void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
 {
 	CBuffer buffer;
@@ -275,7 +287,7 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             pSocket->SetUserID(strUserID);
 
             COutRegisterClient outBuf;
-            outBuf.SetState(bValidUser);
+            outBuf.SetValid(bValidUser);
             if (bValidUser)
             {
                 outBuf.SetUserName(strUserName);
@@ -290,6 +302,8 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
 
             str.Format(TEXT("\tUserID = %s, UserName = %s"), strUserID, strUserName);
             m_listMessage.Push(str);
+
+            m_stateAuction = E_NONE;
         }
         break;
     case CMD_RETRIEVE_STOCK_OF_CLIENT:
@@ -316,10 +330,14 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             }
 
             outBuf.Send(pSocket);
+
+            m_stateAuction = E_NONE;
         }
         break;
     case CMD_ADVERTISING:
         {
+            m_stateAuction = E_ADVERTISING;
+
             CInAdvertising* inBuf = (CInAdvertising*)&buffer;
             DWORD    dwProductID  = inBuf->GetProductID();
             CString  strName      = inBuf->GetProductName();
@@ -333,20 +351,33 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             buf.SetProductName(strName);
             
             // Broadcast this packet to the other clients
-            BroadcastPacket(pSocket, buf);
+            BroadcastBuffer(pSocket, buf);
 
             COutAdvertising outBuf;
-            outBuf.SetState(true);
+            outBuf.SetState(m_stateAuction);
+
+            
 
             outBuf.Send(pSocket);
 
             // *****************************************************************************
             // After 5 minutes, the Auction should be started and the bids will be allowed.
 
+            Timer timer;
+            int * p = NULL;
+            timer.registerHandler(TimerProc, p);
+            timer.setInterval(1000);
+            timer.Start();
 
+            ::Sleep(1000*300);
 
+            timer.Cancel();
 
+            CBroadcastState state;
+            state.SetState(E_AUCTION);
 
+            m_stateAuction = E_AUCTION;
+            BroadcastBuffer(pSocket, state);
 
             //******************************************************************************
         }
@@ -362,6 +393,7 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
 
             COutAuction outBuf;
 
+            m_stateAuction = E_AUCTION;
 
             outBuf.Send(pSocket);
 

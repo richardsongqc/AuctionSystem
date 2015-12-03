@@ -10,6 +10,7 @@
 #include "ClassDBConnection.h"
 #include <ListMessage.h>
 #include "Buffer.h"
+#include "timer.h"
 
 extern CMessageQueue<CBuffer> msgRequestQueue;
 extern CMessageQueue<CBuffer> msgResponseQueue;
@@ -49,7 +50,7 @@ public:
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
-    void BroadcastPacket(CClientSocket * pSocket, CBroadcastPrice buf);
+    void BroadcastBuffer(CClientSocket * pSocket, CBuffer buf);
 
 
 	bool ValidateUser(CString strUserID, CString strPassword, CString& strUserName);
@@ -77,8 +78,10 @@ protected:
 // Generated message map functions
 protected:
     static DWORD    m_dwAuctionID;
+    EAuctionState   m_stateAuction;
 
     bool CheckLogin(CString strUserID);
+    //void WINAPI TimerProc(void* p);
 
 	DECLARE_MESSAGE_MAP()
 

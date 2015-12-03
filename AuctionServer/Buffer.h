@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <protocol.h>
 
 class CBuffer
 {
@@ -55,8 +56,11 @@ public:
 	COutRegisterClient(const COutRegisterClient& rOut);
 	COutRegisterClient& operator = (const COutRegisterClient& rOut);
 
-	bool GetState();
-	void SetState(bool bState);
+    EAuctionState GetState();
+    void SetState(EAuctionState eState);
+
+	bool GetValid();
+	void SetValid(bool bState);
 
     bool GetLogin();
     void SetLogin(bool bLogin);
@@ -167,6 +171,9 @@ public:
     CInRetrieveStock(const CInRetrieveStock& rIn);
     CInRetrieveStock& operator = (const CInRetrieveStock& rIn);
 
+    //EAuctionState GetState();
+    //void SetState(EAuctionState eState);
+
     CString GetUserID();
     void SetUserID(CString strUserID);
 };
@@ -181,6 +188,9 @@ public:
 
     COutRetrieveStock(const COutRetrieveStock& rOut);
     COutRetrieveStock& operator = (const COutRetrieveStock& rOut);
+
+    EAuctionState GetState();
+    void SetState(EAuctionState eState);
 
     std::vector<CProduct> GetListProduct();
     void SetListProduct(std::vector<CProduct> listProduct);
@@ -220,8 +230,8 @@ public:
     COutAdvertising(const COutAdvertising& rOut);
     COutAdvertising& operator = (const COutAdvertising& rOut);
 
-    bool GetState();
-    void SetState(bool bState);
+    EAuctionState GetState();
+    void SetState(EAuctionState eState);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -258,8 +268,8 @@ public:
     COutAuction(const COutAuction& rOut);
     COutAuction& operator = (const COutAuction& rOut);
 
-    bool GetState();
-    void SetState(bool bState);
+    EAuctionState GetState();
+    void SetState(EAuctionState eState);
 
 	void SetMaxBidPrice( double dblMaxBidPrice);
 	double GetMaxBidPrice();
@@ -290,15 +300,15 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class CBroadcastEnd : public CBuffer
+class CBroadcastState : public CBuffer
 {
 public:
-    CBroadcastEnd();
-    ~CBroadcastEnd();
+    CBroadcastState();
+    ~CBroadcastState();
 
-    CBroadcastEnd(const CBroadcastEnd& rOut);
-    CBroadcastEnd& operator = (const CBroadcastEnd& rOut);
+    CBroadcastState(const CBroadcastState& rOut);
+    CBroadcastState& operator = (const CBroadcastState& rOut);
 
-    bool GetState();
-    void SetState(bool bState);
+    EAuctionState GetState();
+    void SetState(EAuctionState eState);
 };

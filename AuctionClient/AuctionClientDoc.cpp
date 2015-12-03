@@ -44,7 +44,9 @@ END_MESSAGE_MAP()
 
 // CAuctionClientDoc construction/destruction
 
-CAuctionClientDoc::CAuctionClientDoc() : m_eAuctionState(E_NONE)
+CAuctionClientDoc::CAuctionClientDoc() : 
+    m_eAuctionState(E_NONE),
+    m_curProduct(0, L"", 0,0)
 {
 	// TODO: add one-time construction code here
     //m_pThreadProcessRequestQueue = AfxBeginThread(
@@ -305,6 +307,11 @@ EAuctionState CAuctionClientDoc::GetAuctionState()
     return m_eAuctionState;
 }
 
+CProduct CAuctionClientDoc::GetCurrentProduct()
+{
+    return m_curProduct;
+}
+
 void CAuctionClientDoc::SetAuctionState(EAuctionState eAuctionState)
 {
     m_eAuctionState = eAuctionState;
@@ -320,11 +327,11 @@ void CAuctionClientDoc::ProcessPendingRead()
     case RSP_REGISTER_CLIENT:
         {
             COutRegisterClient* outBuf = (COutRegisterClient*)&bufOutput;
-            SetValid(outBuf->GetState());
+            SetValid(outBuf->GetValid());
             SetUserName(outBuf->GetUserName());
             SetLogin(outBuf->GetLogin());
 
-            m_eAuctionState = E_NONE;
+            m_eAuctionState = outBuf->GetState();
         }
         break;
     case RSP_RETRIEVE_STOCK_OF_CLIENT : 
@@ -332,7 +339,7 @@ void CAuctionClientDoc::ProcessPendingRead()
             COutRetrieveStock * outBuf = (COutRetrieveStock*)&bufOutput;
             m_listProduct = outBuf->GetListProduct();
 
-            m_eAuctionState = E_NONE;
+            //m_eAuctionState = outBuf->GetState();
         }
         break;
     case RSP_ADVERTISING              : 
@@ -340,18 +347,23 @@ void CAuctionClientDoc::ProcessPendingRead()
             m_eAuctionState = E_ADVERTISING;
             
             COutAdvertising * outBuf = (COutAdvertising*)&bufOutput;
-            outBuf->GetState();
+            m_eAuctionState = outBuf->GetState();
 
         }
         break;
     case RSP_BID                      : 
         {
-            m_eAuctionState = E_AUCTION;
+            COutAdvertising * outBuf = (COutAdvertising*)&bufOutput;
+            m_eAuctionState = outBuf->GetState();
         }
         break;
     case CMD_BROADCAST_PRICE          : 
         {
-            m_eAuctionState = E_AUCTION;
+            CBroadcastPrice * outBuf = (CBroadcastPrice*)&bufOutput;
+            m_curProduct.SetCount(outBuf->GetProductCount());
+            m_curProduct.SetName(outBuf->GetProductName());
+            m_curProduct.SetProductID(outBuf->GetProductID());
+            m_curProduct.SetPrice(outBuf->GetProductPrice());
         }
         break;
     case CMD_BROADCAST_AUCTION_END    : 

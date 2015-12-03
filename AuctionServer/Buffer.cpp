@@ -271,37 +271,49 @@ COutRegisterClient& COutRegisterClient::operator = (const COutRegisterClient& rO
 	return *this;
 }
 
-bool COutRegisterClient::GetState()
+EAuctionState COutRegisterClient::GetState()
 {
-	return m_szBuf[3] ? true : false;
+    return (EAuctionState)(m_szBuf[3]);
 }
 
-void COutRegisterClient::SetState(bool bState)
+void COutRegisterClient::SetState(EAuctionState eState)
 {
-	m_szBuf[3] = bState ? 1 : 0;
+    m_szBuf[3] = eState;
+    m_szBuf[2] = 1;
+    m_szBuf[1] = 1 + 1 + 1 + m_szBuf[8] + 3;
+}
+
+bool COutRegisterClient::GetValid()
+{
+	return m_szBuf[5] ? true : false;
+}
+
+void COutRegisterClient::SetValid(bool bState)
+{
+	m_szBuf[5] = bState ? 1 : 0;
 	m_szBuf[2] = 1;
-    m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
+    m_szBuf[1] = 1 + 1 + 1 + m_szBuf[8] + 3;
 }
 
 bool COutRegisterClient::GetLogin()
 {
-    return m_szBuf[5] ? true : false;
+    return m_szBuf[7] ? true : false;
 }
 
 void COutRegisterClient::SetLogin(bool bLogin)
 {
-    m_szBuf[5] = bLogin ? 1 : 0;
-    m_szBuf[4] = 1;
-    m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
+    m_szBuf[7] = bLogin ? 1 : 0;
+    m_szBuf[6] = 1;
+    m_szBuf[1] = 1 + 1 + 1 + m_szBuf[8] + 3;
 }
 
 CString COutRegisterClient::GetUserName()
 {
 	USES_CONVERSION;
 
-	int nUserNameLen = m_szBuf[6];
+	int nUserNameLen = m_szBuf[8];
 	BYTE szBuf[1024] = { 0 };
-	memcpy(szBuf, m_szBuf + 7, nUserNameLen);
+	memcpy(szBuf, m_szBuf + 9, nUserNameLen);
 
 	CString strUserName = A2T((LPCSTR)szBuf);
 
@@ -314,9 +326,9 @@ void COutRegisterClient::SetUserName(CString strUserName)
 
 	m_szBuf[6] = strUserName.GetLength();
 
-	memcpy(m_szBuf + 7, T2A(strUserName.GetBuffer(m_szBuf[6])), m_szBuf[6]);
+	memcpy(m_szBuf + 9, T2A(strUserName.GetBuffer(m_szBuf[8])), m_szBuf[8]);
 
-    m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
+    m_szBuf[1] = 1 + 1 + 1 + m_szBuf[8] + 3;
 }
 
 
@@ -624,14 +636,14 @@ COutAdvertising& COutAdvertising::operator = (const COutAdvertising& rObj)
     return *this;
 }
 
-bool COutAdvertising::GetState()
+EAuctionState COutAdvertising::GetState()
 {
-    return m_szBuf[3] ? true : false;
+    return (EAuctionState)m_szBuf[3] ;
 }
 
-void COutAdvertising::SetState(bool bState)
+void COutAdvertising::SetState(EAuctionState eState)
 {
-    m_szBuf[3] = bState ? 1 : 0;
+    m_szBuf[3] = eState;
     m_szBuf[2] = 1;
     m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
 }
@@ -755,14 +767,14 @@ COutAuction& COutAuction::operator = (const COutAuction& rObj)
     return *this;
 }
 
-bool COutAuction::GetState()
+EAuctionState COutAuction::GetState()
 {
-    return m_szBuf[3] ? true : false;
+    return (EAuctionState)m_szBuf[3] ;
 }
 
-void COutAuction::SetState(bool bState)
+void COutAuction::SetState(EAuctionState eState)
 {
-    m_szBuf[3] = bState ? 1 : 0;
+    m_szBuf[3] = eState;
     m_szBuf[2] = 1;
     m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
 
@@ -885,37 +897,37 @@ CString CBroadcastPrice::GetProductName()
 
 /////////////////////////////////////////////////////////////////////////////// 
 
-CBroadcastEnd::CBroadcastEnd()
+CBroadcastState::CBroadcastState()
 {
     SetCmd(CMD_BROADCAST_AUCTION_END);
 }
 
-CBroadcastEnd::~CBroadcastEnd()
+CBroadcastState::~CBroadcastState()
 {
 
 }
 
-CBroadcastEnd::CBroadcastEnd(const CBroadcastEnd& rObj)
+CBroadcastState::CBroadcastState(const CBroadcastState& rObj)
 {
     memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
 }
 
-CBroadcastEnd& CBroadcastEnd::operator = (const CBroadcastEnd& rObj)
+CBroadcastState& CBroadcastState::operator = (const CBroadcastState& rObj)
 {
     memcpy(m_szBuf, rObj.m_szBuf, sizeof(m_szBuf));
     return *this;
 }
 
-bool CBroadcastEnd::GetState()
+EAuctionState CBroadcastState::GetState()
 {
-    return m_szBuf[3] ? true : false;
+    return (EAuctionState)m_szBuf[3];
 }
 
-void CBroadcastEnd::SetState(bool bState)
+void CBroadcastState::SetState(EAuctionState eState)
 {
-    m_szBuf[3] = bState ? 1 : 0;
+    m_szBuf[3] = eState;
     m_szBuf[2] = 1;
-    m_szBuf[1] = 1 + 1 + m_szBuf[6] + 2;
+    m_szBuf[1] = 2;
 }
 
 /////////////////////////////////////////////////////////////////////////////// 
