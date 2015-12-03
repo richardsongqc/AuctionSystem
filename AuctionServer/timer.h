@@ -61,6 +61,8 @@ public:
         {
             (*m_handlerAfter)(m_paramAfter);
         }
+
+        Stop();
     }
 
     void Cancel()

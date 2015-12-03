@@ -363,15 +363,16 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             // *****************************************************************************
             // After 5 minutes, the Auction should be started and the bids will be allowed.
 
-            Timer timer;
+            
             int * p = NULL;
             timer.registerHandler(TimerProc, p);
-            timer.setInterval(1000);
+            timer.registerHandlerAfter(TimerAfterProc, p);
+            
+            timer.setInterval(10000);
+            timer.SetPeriod(10000 * 30);
             timer.Start();
+            
 
-            ::Sleep(1000*300);
-
-            timer.Cancel();
 
             CBroadcastState state;
             state.SetState(E_AUCTION);

@@ -82,7 +82,7 @@ protected:
 
     bool CheckLogin(CString strUserID);
     //void WINAPI TimerProc(void* p);
-
+    Timer timer;
 	DECLARE_MESSAGE_MAP()
 
 #ifdef SHARED_HANDLERS
