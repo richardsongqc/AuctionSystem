@@ -221,21 +221,21 @@ void CAuctionServerDoc::Dump(CDumpContext& dc) const
 
 
 // CAuctionServerDoc commands
-void CAuctionServerDoc::BroadcastBuffer(CClientSocket * pSocket, CBuffer buf)
+void CAuctionServerDoc::BroadcastBuffer( CBuffer buf)
 {
-    for (CClientSocket client : m_listClient)
+    for (CClientSocket* client : m_listClient)
     {
-        //if (client.GetLogin() == false )
-        //{
-        //    continue;
-        //}
+        if (client->GetLogin() == false )
+        {
+            continue;
+        }
 
         //if (client.GetUserID() == pSocket->GetUserID())
         //{
         //    continue;
         //}
 
-        buf.Send(&client);
+        TRACE(L"Broadcast Return: %d", buf.Send(client) );
     }
 }
 
@@ -243,11 +243,35 @@ void CAuctionServerDoc::ProcessPendingAccept()
 {
 	CClientSocket* pSocket = new CClientSocket(this);
 
-	if (m_pSocket->Accept(*pSocket))
+    sockaddr_in from;
+    memset(&from, 0, sizeof(sockaddr_in));
+    int fromlen = sizeof(from);
+    CString str;
+
+    if (m_pSocket->Accept(*pSocket, (struct sockaddr*)&from, &fromlen ))
 	{
-		m_listClient.push_back(*pSocket);
+		m_listClient.push_back(pSocket);
+        char szTemp[512] = { 0 };
+        strcpy_s(szTemp, inet_ntoa(from.sin_addr));
+        TCHAR szBuf[1024] = { 0 };
+        int nLen = sizeof(szBuf);
+        int nRetLen = MultiByteToWideChar(
+            CP_ACP,
+            0,
+            szTemp,
+            strlen(szTemp),
+            szBuf,
+            nLen);
+
 		CString str(TEXT("A new connection is accepted!"));
 		m_listMessage.Push(str);
+
+        str.Format(TEXT("\tClient IP:%s"), szBuf);
+        m_listMessage.Push(str);
+
+
+        str.Format(TEXT("\tClient Port:%d"), from.sin_port);
+        m_listMessage.Push(str);
 	}
 	else
 	{
@@ -351,7 +375,7 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             buf.SetProductName(strName);
             
             // Broadcast this packet to the other clients
-            BroadcastBuffer(pSocket, buf);
+            BroadcastBuffer( buf);
 
             COutAdvertising outBuf;
             outBuf.SetState(m_stateAuction);
@@ -378,7 +402,7 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             state.SetState(E_AUCTION);
 
             m_stateAuction = E_AUCTION;
-            BroadcastBuffer(pSocket, state);
+            BroadcastBuffer( state);
 
             //******************************************************************************
         }
@@ -557,11 +581,9 @@ CAuctionServerDoc * CAuctionServerDoc::GetDoc()
 bool CAuctionServerDoc::CheckLogin(CString strUserID)
 {
     bool bRet = false;
-    for (std::vector<CClientSocket>::iterator iter = m_listClient.begin();
-        iter != m_listClient.end();
-        iter++)
+    for (CClientSocket *pSocket : m_listClient )
     {
-        if (iter->GetUserID() == strUserID && iter->GetLogin() == true)
+        if (pSocket->GetUserID() == strUserID && pSocket->GetLogin() == true)
         {
             bRet = true;
             break;

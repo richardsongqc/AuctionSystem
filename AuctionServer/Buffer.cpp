@@ -149,7 +149,13 @@ int CBuffer::Receive(CSocket* pSocket)
 
 int CBuffer::Send(CSocket* pSocket)
 {
-	return pSocket->Send(m_szBuf, sizeof(m_szBuf));
+	int nRet = pSocket->Send(m_szBuf, sizeof(m_szBuf));
+
+    if (nRet == -1)
+    {
+        TRACE( L"Error = %d\n", GetLastError());
+    }
+    return nRet;
 }
 
 CSocket * CBuffer::GetSocket()
@@ -291,7 +297,7 @@ bool COutRegisterClient::GetValid()
 void COutRegisterClient::SetValid(bool bState)
 {
 	m_szBuf[5] = bState ? 1 : 0;
-	m_szBuf[2] = 1;
+	m_szBuf[4] = 1;
     m_szBuf[1] = 1 + 1 + 1 + m_szBuf[8] + 3;
 }
 
@@ -324,7 +330,7 @@ void COutRegisterClient::SetUserName(CString strUserName)
 {
 	USES_CONVERSION;
 
-	m_szBuf[6] = strUserName.GetLength();
+	m_szBuf[8] = strUserName.GetLength();
 
 	memcpy(m_szBuf + 9, T2A(strUserName.GetBuffer(m_szBuf[8])), m_szBuf[8]);
 

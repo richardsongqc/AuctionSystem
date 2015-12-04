@@ -50,7 +50,7 @@ public:
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
-    void BroadcastBuffer(CClientSocket * pSocket, CBuffer buf);
+    void BroadcastBuffer( CBuffer buf);
 
 
 	bool ValidateUser(CString strUserID, CString strPassword, CString& strUserName);
@@ -65,7 +65,7 @@ public:
 	static CAuctionServerDoc * GetDoc();
 protected:
 	CListeningSocket* m_pSocket;
-	std::vector<CClientSocket>  m_listClient;
+	std::vector<CClientSocket*>  m_listClient;
     CMessageQueue<CString>	m_listMessage;
 
 	ClassDBConnection m_dbConn;
