@@ -50,39 +50,54 @@ public:
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
-    void BroadcastBuffer( CBuffer buf);
+    static void BroadcastBuffer( CBuffer buf);
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Datebase
+	static bool ValidateUser(CString strUserID, CString strPassword, CString& strUserName);
+    static std::vector<CProduct> GetListProduct(CString strUserID);
+    static DWORD GetAuctionID();
+    static void SetBidTransaction(DWORD dwAuctionID, CString strUserID, CProduct product);
+    static double GetMaxBidPrice(DWORD dwAuctionID);
 
 
-	bool ValidateUser(CString strUserID, CString strPassword, CString& strUserName);
-    std::vector<CProduct> GetListProduct(CString strUserID);
-    DWORD GetAuctionID();
+    /////////////////////////////////////////////////////////////////////////////////////
 
 	//friend UINT ProcessRequestQueueThread(LPVOID pParam);
 	//friend UINT ProcessResponseQueueThread(LPVOID pParam);
 
 	CMessageQueue<CString>& GetListMessage();
 
+
 	static CAuctionServerDoc * GetDoc();
 protected:
 	CListeningSocket* m_pSocket;
-	std::vector<CClientSocket*>  m_listClient;
+	static std::vector<CClientSocket*>  m_listClient;
     CMessageQueue<CString>	m_listMessage;
 
-	ClassDBConnection m_dbConn;
+	static ClassDBConnection m_dbConn;
 
 	//CWinThread	*	m_pThreadProcessRequestQueue;
 	//CWinThread	*	m_pThreadProcessResponseQueue;
 	//CMutex *		m_pMutex;
 
 	void UpdateAllView();
+
+    static void CALLBACK TimerAdvertisingProc(void* p);
+    static void CALLBACK TimerAfterAdvertisingProc(void* p);
+    static void CALLBACK TimerBidProc(void* p);
+    static void CALLBACK TimerAfterBidProc(void* p);
+    static DWORD    m_dwAuctionID;
 // Generated message map functions
 protected:
-    static DWORD    m_dwAuctionID;
+
     EAuctionState   m_stateAuction;
 
     bool CheckLogin(CString strUserID);
     //void WINAPI TimerProc(void* p);
     Timer timer;
+    Timer timerBid;
+
 	DECLARE_MESSAGE_MAP()
 
 #ifdef SHARED_HANDLERS

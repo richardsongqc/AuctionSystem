@@ -254,6 +254,9 @@ public:
 	void SetProductName( CString strProductName);
 	CString GetProductName();
 
+    void SetUserID(CString strUserID);
+    CString GetUserID();
+
 };
 
 

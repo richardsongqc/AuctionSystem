@@ -62,8 +62,8 @@ public:
     CButton m_btnBid;
     void UpdateMode();
     CStatic m_lblCurrentBid;
-    CStatic m_edtBidCount;
-    CStatic m_edtBidName;
+    CStatic m_lblBidCount;
+    CStatic m_lblBidName;
 };
 
 #ifndef _DEBUG  // debug version in AuctionClientView.cpp

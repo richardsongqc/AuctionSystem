@@ -368,7 +368,8 @@ void CAuctionClientDoc::ProcessPendingRead()
         break;
     case CMD_BROADCAST_AUCTION_END    : 
         {
-            m_eAuctionState = E_NONE;
+            CBroadcastState * outBuf = (CBroadcastState*)&bufOutput;
+            m_eAuctionState = outBuf->GetState();
         }
         break;
     }

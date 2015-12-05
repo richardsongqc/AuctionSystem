@@ -614,7 +614,7 @@ void CInAdvertising::SetProductName( CString strProductName)
 CString CInAdvertising::GetProductName()
 {
     USES_CONVERSION;
-    int position = 5 + sizeof(DWORD) * 2 + sizeof(double);
+    int position = 6 + sizeof(DWORD) * 2 + sizeof(double);
     CString str(A2T((char*)m_szBuf + position));
     return str;
 }
@@ -745,11 +745,33 @@ void CInAuction::SetProductName( CString strProductName)
 CString CInAuction::GetProductName()
 {
     USES_CONVERSION;
-    int position = 5 + sizeof(DWORD) * 2 + sizeof(double);
+    int position = 6 + sizeof(DWORD) * 2 + sizeof(double);
     CString str(A2T((char*)m_szBuf + position));
     return str;
 }
      
+void CInAuction::SetUserID(CString strUserID)
+{
+    USES_CONVERSION;
+    int nProductNameLen = m_szBuf[6 + sizeof(DWORD) * 2 + sizeof(double)];
+    int position = 6 + sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen;
+
+    int nUserIDLen = strUserID.GetLength();
+    m_szBuf[position++] = nUserIDLen;
+    memcpy(m_szBuf + position, T2A(strUserID), nUserIDLen);
+
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen + 4);
+}
+
+CString CInAuction::GetUserID()
+{
+    USES_CONVERSION;
+    int nProductNameLen = m_szBuf[6 + sizeof(DWORD) * 2 + sizeof(double)];
+    int position = 8 + sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen;
+    CString str(A2T((char*)m_szBuf + position));
+    return str;
+}
+
 /////////////////////////////////////////////////////////////////////////////// 
 
 COutAuction::COutAuction()
@@ -829,7 +851,6 @@ CBroadcastPrice& CBroadcastPrice::operator = (const CBroadcastPrice& rObj)
     return *this;
 }
 
-
 void CBroadcastPrice::SetProductID(DWORD dwProductID)
 {
     int position = 2;
@@ -896,11 +917,10 @@ void CBroadcastPrice::SetProductName(CString strProductName)
 CString CBroadcastPrice::GetProductName()
 {
     USES_CONVERSION;
-    int position = 5 + sizeof(DWORD) * 2 + sizeof(double);
+    int position = 6 + sizeof(DWORD) * 2 + sizeof(double);
     CString str(A2T((char*)m_szBuf + position));
     return str;
 }
-
 /////////////////////////////////////////////////////////////////////////////// 
 
 CBroadcastState::CBroadcastState()

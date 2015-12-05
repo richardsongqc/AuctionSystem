@@ -59,8 +59,8 @@ void CAuctionClientView::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_EDIT_PLACE_BID, m_edtBid);
     DDX_Control(pDX, IDC_BUTTON_PLACE_BID, m_btnBid);
     DDX_Control(pDX, IDC_STATIC_CURRENT_BID, m_lblCurrentBid);
-    DDX_Control(pDX, IDC_STATIC_BID_COUNT, m_edtBidCount);
-    DDX_Control(pDX, IDC_STATIC_BID_NAME, m_edtBidName);
+    DDX_Control(pDX, IDC_STATIC_BID_COUNT, m_lblBidCount);
+    DDX_Control(pDX, IDC_STATIC_BID_NAME, m_lblBidName);
 }
 
 BOOL CAuctionClientView::PreCreateWindow(CREATESTRUCT& cs)
@@ -235,10 +235,10 @@ void CAuctionClientView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject*
             CProduct& product = pDoc->GetCurrentProduct();
 
             str.Format(L"%s", product.GetName());
-            m_edtBidName.SetWindowText(str);
+            m_lblBidName.SetWindowText(str);
 
             str.Format(L"%d", product.GetCount());
-            m_edtBidCount.SetWindowText(str);
+            m_lblBidCount.SetWindowText(str);
 
             str.Format(L"%f", product.GetPrice());
             m_lblCurrentBid.SetWindowText(str);
@@ -328,6 +328,21 @@ void CAuctionClientView::OnBnClickedButtonAdvertising()
 void CAuctionClientView::OnBnClickedButtonPlaceBid()
 {
     // TODO: Add your control notification handler code here
+    CString str;
+    m_edtBid.GetWindowText(str);
+    double dblPrice = _ttof(str);
+
+    CAuctionClientDoc * pDoc = GetDocument();
+    CProduct& product = pDoc->GetCurrentProduct();
+    product.SetPrice(dblPrice);
+    
+    CInAuction inBuf;
+    inBuf.SetProductCount(product.GetCount());
+    inBuf.SetProductName(product.GetName());
+    inBuf.SetProductID(product.GetCount());
+    inBuf.SetProductPrice(product.GetPrice());
+
+    pDoc->SendBuffer(inBuf);
 }
 
 
@@ -345,8 +360,8 @@ void CAuctionClientView::UpdateMode()
             m_btnAdvertise.EnableWindow(TRUE);
 
             m_edtBid.EnableWindow(FALSE);
-            m_edtBidCount.EnableWindow(FALSE);
-            m_edtBidName.EnableWindow(FALSE);
+            //m_lblBidCount.EnableWindow(FALSE);
+            //m_lblBidName.EnableWindow(FALSE);
             m_btnBid.EnableWindow(FALSE);
         }
         break;
@@ -356,8 +371,8 @@ void CAuctionClientView::UpdateMode()
             m_btnAdvertise.EnableWindow(FALSE);
 
             m_edtBid.EnableWindow(TRUE);
-            m_edtBidCount.EnableWindow(TRUE);
-            m_edtBidName.EnableWindow(TRUE);
+            //m_lblBidCount.EnableWindow(TRUE);
+            //m_lblBidName.EnableWindow(TRUE);
             m_btnBid.EnableWindow(TRUE);
         }
         break;
@@ -367,8 +382,8 @@ void CAuctionClientView::UpdateMode()
             m_btnAdvertise.EnableWindow(FALSE);
 
             m_edtBid.EnableWindow(TRUE);
-            m_edtBidCount.EnableWindow(TRUE);
-            m_edtBidName.EnableWindow(TRUE);
+            //m_lblBidCount.EnableWindow(TRUE);
+            //m_lblBidName.EnableWindow(TRUE);
             m_btnBid.EnableWindow(TRUE);
 
         }

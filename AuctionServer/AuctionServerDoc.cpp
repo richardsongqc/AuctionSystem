@@ -21,6 +21,8 @@
 
 CMessageQueue<CBuffer> msgRequestQueue;
 CMessageQueue<CBuffer> msgResponseQueue;
+std::vector<CClientSocket*>  CAuctionServerDoc::m_listClient;
+ClassDBConnection CAuctionServerDoc::m_dbConn;
 
 CAuctionServerDoc * GetCurrentDoc()
 {
@@ -282,14 +284,28 @@ void CAuctionServerDoc::ProcessPendingAccept()
 }
 
 
-void WINAPI TimerProc(void* p)
+void WINAPI CAuctionServerDoc::TimerAdvertisingProc(void* p)
 {
 
 }
 
-void WINAPI TimerAfterProc(void* p)
+void CALLBACK CAuctionServerDoc::TimerBidProc(void* p)
 {
 
+}
+
+void CALLBACK CAuctionServerDoc::TimerAfterBidProc(void* p)
+{
+    CBroadcastState state;
+    state.SetState(E_AUCTION);
+
+    BroadcastBuffer(state);
+}
+
+void CALLBACK CAuctionServerDoc::TimerAfterAdvertisingProc(void* p)
+{
+    m_dwAuctionID = GetAuctionID();
+    m_dwAuctionID++;
 }
 
 void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
@@ -380,30 +396,31 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             COutAdvertising outBuf;
             outBuf.SetState(m_stateAuction);
 
-            
-
             outBuf.Send(pSocket);
+
+
 
             // *****************************************************************************
             // After 5 minutes, the Auction should be started and the bids will be allowed.
 
             
             int * p = NULL;
-            timer.registerHandler(TimerProc, p);
-            timer.registerHandlerAfter(TimerAfterProc, p);
+            TimerHandler handler = &TimerAfterAdvertisingProc;
+            timer.registerHandler(handler, p);
+            handler = &TimerAfterAdvertisingProc;
+            timer.registerHandlerAfter(handler, p);
             
-            timer.setInterval(10000);
-            timer.SetPeriod(10000 * 30);
+            timer.setInterval(1000);
+            timer.SetPeriod(300*1000);
             timer.Start();
             
-
-
             CBroadcastState state;
             state.SetState(E_AUCTION);
 
             m_stateAuction = E_AUCTION;
             BroadcastBuffer( state);
 
+            
             //******************************************************************************
         }
         break;
@@ -411,21 +428,60 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
         {
             CInAuction* inBuf = (CInAuction*)&buffer;
             double   m_dblPrice = inBuf->GetProductPrice();
-
+            CString strUserID = inBuf->GetUserID();
             // Check the max bid price
-            double dblBidPrice = inBuf->GetProductPrice();
+            double dblMaxBidPrice = GetMaxBidPrice(m_dwAuctionID);
             //double dblMaxBidPrice = GetDBConn().GetMaxBidPrice(m_lAuctionID);
+            
+            CProduct product(
+                inBuf->GetProductID(),
+                inBuf->GetProductName(),
+                inBuf->GetProductCount(),
+                inBuf->GetProductPrice());
 
             COutAuction outBuf;
 
             m_stateAuction = E_AUCTION;
+            if (m_dblPrice > dblMaxBidPrice)
+            {
+                SetBidTransaction(
+                    m_dwAuctionID,
+                    strUserID,
+                    product);
 
-            outBuf.Send(pSocket);
+                CBroadcastPrice buf;
+                buf.SetProductID(inBuf->GetProductID());
+                buf.SetProductName(inBuf->GetProductName());
+                buf.SetProductPrice(inBuf->GetProductCount());
+                buf.SetProductCount(inBuf->GetProductPrice());
 
-            //*********************************************************
-            //如果这个最高价格保持5分钟，这个拍卖就可以结束了。
-            //实现起来，我们还需要一个线程去检查在这5分钟里，有没有新价格高于它。
-            //*********************************************************
+                BroadcastBuffer(buf);
+
+                //*********************************************************
+                //如果这个最高价格保持5分钟，这个拍卖就可以结束了。
+                //实现起来，我们还需要一个线程去检查在这5分钟里，有没有新价格高于它。
+                //*********************************************************
+
+                int * p = NULL;
+                TimerHandler handler = &TimerBidProc;
+                timerBid.registerHandler(handler, p);
+                handler = &TimerAfterBidProc;
+                timerBid.registerHandlerAfter(handler, p);
+
+                timerBid.setInterval(1000);
+                timerBid.SetPeriod(300 * 1000);
+                timerBid.Start();
+
+                
+                outBuf.Send(pSocket);
+            }
+
+
+
+
+
+
+
         }
         break;
     }
@@ -434,6 +490,7 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
 
     //CAuctionServerView::GetView()->UpdateWindow();
 }
+
 
 void CAuctionServerDoc::ProcessInQueue()
 {
@@ -473,6 +530,41 @@ DWORD CAuctionServerDoc::GetAuctionID()
     }
 
     return dwAuctionID;
+}
+
+double CAuctionServerDoc::GetMaxBidPrice(DWORD dwAuctionID)
+{
+    double dblMaxPrice = 0;
+    try
+    {
+        CString strSQL;
+        strSQL.Format(TEXT("SELECT MAX(Price) AS BidPrice FROM Auction WHERE AuctionID = %d;"), dwAuctionID);
+
+        m_dbConn.ExecuteSql(strSQL);
+
+        CDBVariant BidPrice;
+
+        if (m_dbConn.GetRecordCount() > 0)
+        {
+            while (!m_dbConn.m_Recordset->IsEOF())
+            {
+                m_dbConn.m_Recordset->GetFieldValue(TEXT("BidPrice"), BidPrice);
+                dblMaxPrice = BidPrice.m_dblVal;
+                m_dbConn.m_Recordset->MoveNext();
+            }
+        }
+    }
+    catch (CString e)
+    {
+        AfxMessageBox(e);
+    }
+    catch (CDBException* e)
+    {
+        AfxMessageBox(e->m_strError);
+        e->Delete();
+    }
+
+    return dblMaxPrice;
 }
 
 bool CAuctionServerDoc::ValidateUser(
@@ -558,6 +650,56 @@ std::vector<CProduct> CAuctionServerDoc::GetListProduct(CString strUserID)
     }
 
     return listProduct;
+}
+
+
+void CAuctionServerDoc::SetBidTransaction(
+    DWORD dwAuctionID,
+    CString strUserID,
+    CProduct product)
+{
+    CString strTime;
+
+    SYSTEMTIME sys;
+    GetLocalTime(&sys);
+
+    strTime.Format(TEXT("%4d-%02d-%02d %02d:%02d:%02d"),
+        sys.wYear,
+        sys.wMonth,
+        sys.wDay,
+        sys.wHour,
+        sys.wMinute,
+        sys.wSecond);
+
+    try
+    {
+        m_dbConn.BeginTrans();
+
+
+
+        CString strSQL;
+        strSQL.Format(TEXT("INSERT INTO Auction(AuctionID, UserID, ProductID, Count, Price, Time ) VALUES( %d, '%s', %d, %f, '%s')"), 
+            dwAuctionID,
+            strUserID, 
+            product.GetProductID(),
+            product.GetCount(),
+            product.GetPrice(),
+            strTime);
+
+        m_dbConn.ExecuteSqlNonQuery(strSQL);
+
+        m_dbConn.CommitTrans();
+    }
+    catch (CString e)
+    {
+        AfxMessageBox(e);
+    }
+    catch (CDBException* e)
+    {
+        AfxMessageBox(e->m_strError);
+        e->Delete();
+    }
+
 }
 
 CMessageQueue<CString>& CAuctionServerDoc::GetListMessage()
