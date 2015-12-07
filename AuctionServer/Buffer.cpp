@@ -686,7 +686,9 @@ void CInAuction::SetProductID(DWORD dwProductID)
     position++;
     DWORD2Bytes(dwProductID, m_szBuf + position);
 
-    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] + 4);
+    int nProductNameLen = m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)];
+    int nUserIDLen = m_szBuf[6 + sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen];
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen + 5 + nUserIDLen);
 }
 
 DWORD CInAuction::GetProductID()
@@ -702,7 +704,9 @@ void CInAuction::SetProductCount( DWORD dwProductCount)
     position++;
     DWORD2Bytes(dwProductCount, m_szBuf + position);
 
-    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] + 4);
+    int nProductNameLen = m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)];
+    int nUserIDLen = m_szBuf[6 + sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen];
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen + 5 + nUserIDLen);
 }
 
 DWORD CInAuction::GetProductCount()
@@ -719,7 +723,9 @@ void CInAuction::SetProductPrice( double dblProductPrice)
     m_szBuf[position++] = sizeof(double);
     Float2Bytes(dblProductPrice, m_szBuf + position);
 
-    SetLen(sizeof(DWORD) * 2 + sizeof(double) + m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)] + 4);
+    int nProductNameLen = m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)];
+    int nUserIDLen = m_szBuf[6 + sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen];
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen + 5 + nUserIDLen);
 }
 
 double CInAuction::GetProductPrice()
@@ -739,35 +745,38 @@ void CInAuction::SetProductName( CString strProductName)
     m_szBuf[position++] = nProductNameLen;
     memcpy(m_szBuf + position, T2A(strProductName), nProductNameLen);
 
-    SetLen(sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen + 4 );
+    int nUserIDLen = m_szBuf[6 + sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen];
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen + 5 + nUserIDLen);
 }
 
 CString CInAuction::GetProductName()
 {
     USES_CONVERSION;
+    int nProductNameLen = m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)];
     int position = 6 + sizeof(DWORD) * 2 + sizeof(double);
+
     CString str(A2T((char*)m_szBuf + position));
-    return str;
+    return str.Left(nProductNameLen);
 }
      
 void CInAuction::SetUserID(CString strUserID)
 {
     USES_CONVERSION;
-    int nProductNameLen = m_szBuf[6 + sizeof(DWORD) * 2 + sizeof(double)];
+    int nProductNameLen = m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)];
     int position = 6 + sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen;
 
     int nUserIDLen = strUserID.GetLength();
     m_szBuf[position++] = nUserIDLen;
     memcpy(m_szBuf + position, T2A(strUserID), nUserIDLen);
 
-    SetLen(sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen + 4);
+    SetLen(sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen + 5 + nUserIDLen);
 }
 
 CString CInAuction::GetUserID()
 {
     USES_CONVERSION;
-    int nProductNameLen = m_szBuf[6 + sizeof(DWORD) * 2 + sizeof(double)];
-    int position = 8 + sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen;
+    int nProductNameLen = m_szBuf[5 + sizeof(DWORD) * 2 + sizeof(double)];
+    int position = 7 + sizeof(DWORD) * 2 + sizeof(double) + nProductNameLen;
     CString str(A2T((char*)m_szBuf + position));
     return str;
 }
@@ -925,7 +934,7 @@ CString CBroadcastPrice::GetProductName()
 
 CBroadcastState::CBroadcastState()
 {
-    SetCmd(CMD_BROADCAST_AUCTION_END);
+    SetCmd(CMD_BROADCAST_STATUS);
 }
 
 CBroadcastState::~CBroadcastState()

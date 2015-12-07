@@ -158,6 +158,16 @@ void CAuctionClientView::OnEditLogin()
     // TODO: Add your command handler code here
 
     m_pLogonDlg->ShowWindow(SW_SHOW);
+
+    CAuctionClientDoc * pDoc = GetDocument();
+
+    if (pDoc->GetLogin())
+    {
+        CInRetrieveStock inBuf;
+        inBuf.SetUserID(pDoc->GetUserID());
+        pDoc->SendBuffer(inBuf);
+    }
+
 }
 
 
@@ -339,8 +349,9 @@ void CAuctionClientView::OnBnClickedButtonPlaceBid()
     CInAuction inBuf;
     inBuf.SetProductCount(product.GetCount());
     inBuf.SetProductName(product.GetName());
-    inBuf.SetProductID(product.GetCount());
+    inBuf.SetProductID(product.GetProductID());
     inBuf.SetProductPrice(product.GetPrice());
+    inBuf.SetUserID(pDoc->GetUserID());
 
     pDoc->SendBuffer(inBuf);
 }
@@ -370,10 +381,10 @@ void CAuctionClientView::UpdateMode()
             m_listStock.EnableWindow(FALSE);
             m_btnAdvertise.EnableWindow(FALSE);
 
-            m_edtBid.EnableWindow(TRUE);
+            m_edtBid.EnableWindow(FALSE);
             //m_lblBidCount.EnableWindow(TRUE);
             //m_lblBidName.EnableWindow(TRUE);
-            m_btnBid.EnableWindow(TRUE);
+            m_btnBid.EnableWindow(FALSE);
         }
         break;
     case E_AUCTION     : 

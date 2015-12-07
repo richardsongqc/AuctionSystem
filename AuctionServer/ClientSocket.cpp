@@ -10,7 +10,8 @@
 // CClientSocket
 
 CClientSocket::CClientSocket(CAuctionServerDoc *pDoc) : 
-	m_pDoc(pDoc)
+	m_pDoc(pDoc),
+    m_bLogin(false)
 {
 }
 

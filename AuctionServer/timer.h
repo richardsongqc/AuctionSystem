@@ -45,15 +45,16 @@ public:
         QueryPerformanceFrequency(&large_interger);
         dff = large_interger.QuadPart;
         QueryPerformanceCounter(&large_interger);
-        __int64 tickNow = large_interger.QuadPart;
-        __int64 tickLastTime = tickNow;
-        __int64 startTime = tickNow;
-        __int64 lElasped = m_dwPeriod*1000;
-        while (!IsStop() && lElasped > 0)
+        double tickNow = large_interger.QuadPart/dff;
+        double tickLastTime = tickNow;
+        double startTime = tickNow;
+        double lElasped = m_dwPeriod;
+        TRACE(L"\nlElasped = %f\n", lElasped);
+        while (/*!IsStop() &&*/ lElasped > 0)
         {
             QueryPerformanceCounter(&large_interger);
-            tickNow = large_interger.QuadPart;
-            if (tickNow - tickLastTime > m_interval*1000)
+            tickNow = large_interger.QuadPart/dff;
+            if (tickNow - tickLastTime > m_interval)
             {
                 if (m_handler)
                 {
@@ -61,12 +62,12 @@ public:
                 }
 
                 QueryPerformanceCounter(&large_interger);
-                tickLastTime = large_interger.QuadPart;
+                tickLastTime = large_interger.QuadPart/dff;
             }
-            __int64 l = tickNow - startTime;
-            lElasped -= (tickNow - startTime);
-
-            ::Sleep(1);
+            double l = tickNow - startTime;
+            lElasped -= l;
+            TRACE(L"lElasped = %f\telasped = %f\n", lElasped, l);
+            ::Sleep(1000);
         }
 
         if (m_handlerAfter)

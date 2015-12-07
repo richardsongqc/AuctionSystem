@@ -65,6 +65,7 @@ CAuctionClientDoc::CAuctionClientDoc() :
 CAuctionClientDoc::~CAuctionClientDoc()
 {
     CloseHandle(m_hEvtReceive);
+    m_pSocket->Close();
 }
 
 BOOL CAuctionClientDoc::OnNewDocument()
@@ -366,7 +367,7 @@ void CAuctionClientDoc::ProcessPendingRead()
             m_curProduct.SetPrice(outBuf->GetProductPrice());
         }
         break;
-    case CMD_BROADCAST_AUCTION_END    : 
+    case CMD_BROADCAST_STATUS    : 
         {
             CBroadcastState * outBuf = (CBroadcastState*)&bufOutput;
             m_eAuctionState = outBuf->GetState();

@@ -14,7 +14,7 @@
 #define RSP_BID								0x84 
 
 #define CMD_BROADCAST_PRICE					0xF1  
-#define CMD_BROADCAST_AUCTION_END			0xF2 
+#define CMD_BROADCAST_STATUS			    0xF2 
 
 typedef enum
 {

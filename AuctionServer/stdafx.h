@@ -45,8 +45,8 @@
 // TODO: reference additional headers your program requires here
 
 extern CString GetCurAppPath();
-
-
+extern CTime ConvTimeString(CString strTime);
+extern CTime ConvTimeStruct(TIMESTAMP_STRUCT txStamp);
 
 
 

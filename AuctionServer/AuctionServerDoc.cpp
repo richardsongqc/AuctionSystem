@@ -24,6 +24,10 @@ CMessageQueue<CBuffer> msgResponseQueue;
 std::vector<CClientSocket*>  CAuctionServerDoc::m_listClient;
 ClassDBConnection CAuctionServerDoc::m_dbConn;
 
+
+
+const DWORD     WAITINGTIME = 300;
+
 CAuctionServerDoc * GetCurrentDoc()
 {
 	CMainFrame * pFrame = (CMainFrame *)(AfxGetApp()->m_pMainWnd);
@@ -241,6 +245,62 @@ void CAuctionServerDoc::BroadcastBuffer( CBuffer buf)
     }
 }
 
+void CAuctionServerDoc::UpdateClientName(CString strUserID, CString strUserName)
+{
+    for (CClientSocket* client : m_listClient)
+    {
+        if (client->GetUserID() == strUserID)
+        {
+            client->SetUserName(strUserName);
+        }
+    }
+}
+
+void CAuctionServerDoc::UpdateClientLogin(CString strUserID, bool bLogin)
+{
+    for (CClientSocket* client : m_listClient)
+    {
+        if (client->GetUserID() == strUserID)
+        {
+            client->SetLogin(bLogin);
+        }
+    }
+}
+
+
+void CAuctionServerDoc::UpdateClientUserID(CClientSocket * pSocket, CString strUserID)
+{
+    for (CClientSocket* client : m_listClient)
+    {
+        if (client == pSocket)
+        {
+            client->SetUserID(strUserID);
+        }
+    }
+}
+
+void CAuctionServerDoc::UpdateClientName(CClientSocket * pSocket, CString strUserName)
+{
+    for (CClientSocket* client : m_listClient)
+    {
+        if (client == pSocket)
+        {
+            client->SetUserName(strUserName);
+        }
+    }
+}
+
+void CAuctionServerDoc::UpdateClientLogin(CClientSocket * pSocket, bool bLogin)
+{
+    for (CClientSocket* client : m_listClient)
+    {
+        if (client == pSocket)
+        {
+            client->SetLogin(bLogin);
+        }
+    }
+}
+
 void CAuctionServerDoc::ProcessPendingAccept()
 {
 	CClientSocket* pSocket = new CClientSocket(this);
@@ -296,8 +356,20 @@ void CALLBACK CAuctionServerDoc::TimerBidProc(void* p)
 
 void CALLBACK CAuctionServerDoc::TimerAfterBidProc(void* p)
 {
+    CTime lastTxTime = GetRecentTransactionTime(m_dwAuctionID);
+    CTime now = CTime::GetCurrentTime();
+    CTimeSpan ts = now - lastTxTime;
+    TRACE(L"\nDiff of Tx = %I64d\n", ts.GetTotalSeconds() );
+
     CBroadcastState state;
-    state.SetState(E_AUCTION);
+    if (ts.GetTotalSeconds() > WAITINGTIME)
+    {
+        state.SetState(E_NONE);
+    }
+    else
+    {
+        state.SetState(E_AUCTION);
+    }
 
     BroadcastBuffer(state);
 }
@@ -306,6 +378,11 @@ void CALLBACK CAuctionServerDoc::TimerAfterAdvertisingProc(void* p)
 {
     m_dwAuctionID = GetAuctionID();
     m_dwAuctionID++;
+
+    CBroadcastState state;
+    state.SetState(E_AUCTION);
+
+    BroadcastBuffer(state);
 }
 
 void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
@@ -325,6 +402,7 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             bool bValidUser = ValidateUser(strUserID, strPassword, strUserName);
 
             pSocket->SetUserID(strUserID);
+            UpdateClientUserID(pSocket, strUserID);
 
             COutRegisterClient outBuf;
             outBuf.SetValid(bValidUser);
@@ -332,7 +410,10 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             {
                 outBuf.SetUserName(strUserName);
                 pSocket->SetUserName(strUserName);
+                UpdateClientName(pSocket, strUserName);
+
                 outBuf.SetLogin(CheckLogin(strUserID));
+                UpdateClientLogin(pSocket, true);
             }
 
             outBuf.Send(pSocket);
@@ -376,6 +457,9 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
         break;
     case CMD_ADVERTISING:
         {
+            str.Format(TEXT("CMD_ADVERTISING"));
+            m_listMessage.Push(str);
+
             m_stateAuction = E_ADVERTISING;
 
             CInAdvertising* inBuf = (CInAdvertising*)&buffer;
@@ -389,7 +473,10 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             buf.SetProductCount(dwCount);
             buf.SetProductPrice(dblPrice);
             buf.SetProductName(strName);
-            
+
+            str.Format(TEXT("Broadcast Advertising Event. (%s, %d, %f)"), strName, dwCount, dblPrice);
+            m_listMessage.Push(str);
+
             // Broadcast this packet to the other clients
             BroadcastBuffer( buf);
 
@@ -405,20 +492,15 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
 
             
             int * p = NULL;
-            TimerHandler handler = &TimerAfterAdvertisingProc;
-            timer.registerHandler(handler, p);
-            handler = &TimerAfterAdvertisingProc;
-            timer.registerHandlerAfter(handler, p);
+
+            timer.registerHandler(&TimerAdvertisingProc, p);
+            timer.registerHandlerAfter(&TimerAfterAdvertisingProc, p);
             
-            timer.setInterval(1000);
-            timer.SetPeriod(300*1000);
+            timer.setInterval(1);
+            timer.SetPeriod(WAITINGTIME);
             timer.Start();
             
-            CBroadcastState state;
-            state.SetState(E_AUCTION);
 
-            m_stateAuction = E_AUCTION;
-            BroadcastBuffer( state);
 
             
             //******************************************************************************
@@ -426,6 +508,9 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
         break;
     case CMD_BID:
         {
+            str.Format(TEXT("CMD_BID"));
+            m_listMessage.Push(str);
+
             CInAuction* inBuf = (CInAuction*)&buffer;
             double   m_dblPrice = inBuf->GetProductPrice();
             CString strUserID = inBuf->GetUserID();
@@ -444,18 +529,27 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
             m_stateAuction = E_AUCTION;
             if (m_dblPrice > dblMaxBidPrice)
             {
+                str.Format(TEXT("The new biggest price(%f) come in"), m_dblPrice);
+                m_listMessage.Push(str);
+
+                m_mutex.lock();
                 SetBidTransaction(
                     m_dwAuctionID,
                     strUserID,
                     product);
+                m_mutex.unlock();
 
                 CBroadcastPrice buf;
                 buf.SetProductID(inBuf->GetProductID());
                 buf.SetProductName(inBuf->GetProductName());
-                buf.SetProductPrice(inBuf->GetProductCount());
-                buf.SetProductCount(inBuf->GetProductPrice());
+                buf.SetProductCount(inBuf->GetProductCount());
+                buf.SetProductPrice(inBuf->GetProductPrice());
 
                 BroadcastBuffer(buf);
+
+                //CBroadcastState state;
+                //state.SetState(E_AUCTION);
+                //BroadcastBuffer(state);
 
                 //*********************************************************
                 //如果这个最高价格保持5分钟，这个拍卖就可以结束了。
@@ -463,16 +557,14 @@ void CAuctionServerDoc::ProcessPendingRead(CClientSocket* pSocket)
                 //*********************************************************
 
                 int * p = NULL;
-                TimerHandler handler = &TimerBidProc;
-                timerBid.registerHandler(handler, p);
-                handler = &TimerAfterBidProc;
-                timerBid.registerHandlerAfter(handler, p);
+                timerBid.registerHandler(&TimerBidProc, p);
+                timerBid.registerHandlerAfter(&TimerAfterBidProc, p);
 
-                timerBid.setInterval(1000);
-                timerBid.SetPeriod(300 * 1000);
+                timerBid.setInterval(1);
+                timerBid.SetPeriod(WAITINGTIME);
                 timerBid.Start();
 
-                
+                outBuf.SetState(m_stateAuction);
                 outBuf.Send(pSocket);
             }
 
@@ -565,6 +657,41 @@ double CAuctionServerDoc::GetMaxBidPrice(DWORD dwAuctionID)
     }
 
     return dblMaxPrice;
+}
+
+CTime CAuctionServerDoc::GetRecentTransactionTime(DWORD dwAuctionID)
+{
+    CTime time;
+    try
+    {
+        CString strSQL;
+        strSQL.Format(TEXT("SELECT MAX(TransactionTime) AS recentTime FROM Auction WHERE AuctionID = %d;"), dwAuctionID);
+
+        m_dbConn.ExecuteSql(strSQL);
+
+        CDBVariant recentTime;
+
+        if (m_dbConn.GetRecordCount() > 0)
+        {
+            while (!m_dbConn.m_Recordset->IsEOF())
+            {
+                m_dbConn.m_Recordset->GetFieldValue(TEXT("recentTime"), recentTime);
+                time = ConvTimeStruct(*recentTime.m_pdate); 
+                m_dbConn.m_Recordset->MoveNext();
+            }
+        }
+    }
+    catch (CString e)
+    {
+        AfxMessageBox(e);
+    }
+    catch (CDBException* e)
+    {
+        AfxMessageBox(e->m_strError);
+        e->Delete();
+    }
+
+    return time;
 }
 
 bool CAuctionServerDoc::ValidateUser(
@@ -678,7 +805,7 @@ void CAuctionServerDoc::SetBidTransaction(
 
 
         CString strSQL;
-        strSQL.Format(TEXT("INSERT INTO Auction(AuctionID, UserID, ProductID, Count, Price, Time ) VALUES( %d, '%s', %d, %f, '%s')"), 
+        strSQL.Format(TEXT("INSERT INTO Auction(AuctionID, UserID, ProductID, Count, Price, TransactionTime ) VALUES( %d, '%s', %d, %d, %f, '%s');"),
             dwAuctionID,
             strUserID, 
             product.GetProductID(),
@@ -686,6 +813,7 @@ void CAuctionServerDoc::SetBidTransaction(
             product.GetPrice(),
             strTime);
 
+        TRACE(L"%s\n", strSQL);
         m_dbConn.ExecuteSqlNonQuery(strSQL);
 
         m_dbConn.CommitTrans();

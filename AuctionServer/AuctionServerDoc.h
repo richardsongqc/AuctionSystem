@@ -11,6 +11,7 @@
 #include <ListMessage.h>
 #include "Buffer.h"
 #include "timer.h"
+#include <boost\\thread\\mutex.hpp>
 
 extern CMessageQueue<CBuffer> msgRequestQueue;
 extern CMessageQueue<CBuffer> msgResponseQueue;
@@ -59,7 +60,7 @@ public:
     static DWORD GetAuctionID();
     static void SetBidTransaction(DWORD dwAuctionID, CString strUserID, CProduct product);
     static double GetMaxBidPrice(DWORD dwAuctionID);
-
+    static CTime GetRecentTransactionTime(DWORD dwAuctionID);
 
     /////////////////////////////////////////////////////////////////////////////////////
 
@@ -88,11 +89,18 @@ protected:
     static void CALLBACK TimerBidProc(void* p);
     static void CALLBACK TimerAfterBidProc(void* p);
     static DWORD    m_dwAuctionID;
+
+    void UpdateClientName(  CString strUserID, CString strUserName);
+    void UpdateClientLogin( CString strUserID, bool bLogin );
+
+    void UpdateClientUserID(CClientSocket * pSocket, CString strUserID  );
+    void UpdateClientName  (CClientSocket * pSocket, CString strUserName);
+    void UpdateClientLogin (CClientSocket * pSocket, bool bLogin        );
 // Generated message map functions
 protected:
-
+    
     EAuctionState   m_stateAuction;
-
+    boost::mutex m_mutex;
     bool CheckLogin(CString strUserID);
     //void WINAPI TimerProc(void* p);
     Timer timer;
